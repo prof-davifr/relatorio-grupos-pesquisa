@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios para Validação de Grupos de Pesquisa — PRPGI/IFBA</title>
+    <link rel="preconnect" href="https://prof-davifr.github.io">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="loading">
+        <div class="spinner"></div>
+        <p id="loading-text">Carregando dados...</p>
+    </div>
+
+    <div id="aviso-experimental" class="aviso-overlay" role="alertdialog" aria-modal="true" aria-labelledby="aviso-title">
+        <div class="aviso-modal">
+            <div class="aviso-header">
+                <span class="aviso-icon" aria-hidden="true">⚖</span>
+                <h2 id="aviso-title">Aviso</h2>
+            </div>
+            <div class="aviso-body">
+                <p>
+                    Este sistema de validação de grupos de pesquisa encontra-se em
+                    <strong>fase experimental</strong>. Os relatórios gerados são
+                    preliminares e estão sujeitos à validação e aprovação pela
+                    <strong>Pró-Reitoria de Pesquisa, Pós-Graduação e Inovação (PRPGI)</strong>
+                    e pelos avaliadores designados, não constituindo documento oficial
+                    até posterior homologação.
+                </p>
+                <p>
+                    As informações aqui disponibilizadas têm caráter informativo e
+                    não substituem os trâmites formais de avaliação previstos no
+                    Regulamento Geral dos Grupos de Pesquisa do IFBA.
+                </p>
+            </div>
+            <div class="aviso-footer">
+                <a href="mailto:davifr@ifba.edu.br?subject=Sugest%C3%A3o%20-%20Relat%C3%B3rio%20de%20Valida%C3%A7%C3%A3o%20de%20Grupos%20de%20Pesquisa" class="aviso-btn aviso-btn--outline">Enviar Sugestão</a>
+                <button id="aviso-ciencia" class="aviso-btn" type="button">Estou Ciente</button>
+            </div>
+        </div>
+    </div>
+
+    <header class="app-header">
+        <div class="header-content">
+            <div>
+                <h1>Relatórios para Validação de Grupos de Pesquisa</h1>
+                <p class="subtitle">PRPGI / IFBA</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="controls">
+        <label for="grupo-filter" class="sr-only">Grupo de pesquisa</label>
+        <select id="grupo-filter" aria-label="Selecionar grupo de pesquisa">
+            <option value="">Selecione um grupo...</option>
+        </select>
+        <div class="period-controls">
+            <div id="period-btn-group" class="period-btn-group" role="group" aria-label="Período de avaliação">
+                <!-- Biennial period buttons rendered by script.js after data loads -->
+            </div>
+            <div id="custom-period" class="custom-period" style="display:none;">
+                <label for="year-start" class="sr-only">Ano inicial</label>
+                <input type="number" id="year-start" placeholder="Ano inicial" inputmode="numeric" aria-label="Ano inicial do período personalizado">
+                <span class="custom-period-sep" aria-hidden="true">–</span>
+                <label for="year-end" class="sr-only">Ano final</label>
+                <input type="number" id="year-end" placeholder="Ano final" inputmode="numeric" aria-label="Ano final do período personalizado">
+                <button id="apply-custom-period" class="btn-apply" type="button">Aplicar</button>
+            </div>
+        </div>
+        <button id="gerar-relatorio-btn" disabled type="button" title="Selecione um grupo para habilitar">
+            Gerar Relatório
+        </button>
+    </div>
+
+    <div id="landing-section">
+        <div class="landing-controls">
+            <label for="group-search" class="sr-only">Buscar grupo</label>
+            <input type="text" id="group-search" placeholder="Buscar por nome ou área..." aria-label="Buscar grupo por nome ou área">
+            <label for="researcher-search" class="sr-only">Buscar por pesquisador</label>
+            <input type="text" id="researcher-search" placeholder="Buscar por pesquisador..." aria-label="Buscar grupos por nome de pesquisador">
+            <label for="status-filter" class="sr-only">Filtrar por situação</label>
+            <select id="status-filter" aria-label="Filtrar por situação">
+                <option value="">Todas as Situações</option>
+                <option value="Certificado">Certificado</option>
+                <option value="Certificado - Não-atualizado há mais de 12 meses">Certificado (não atualizado)</option>
+                <option value="Em preenchimento">Em preenchimento</option>
+                <option value="Excluído">Excluído</option>
+            </select>
+            <span id="group-count" class="group-count" aria-live="polite"></span>
+        </div>
+        <div class="table-wrapper">
+            <table id="groups-table" aria-label="Lista de grupos de pesquisa do IFBA">
+                <thead>
+                    <tr>
+                        <th data-sort="id" class="sortable">#</th>
+                        <th data-sort="nome" class="sortable">Nome do Grupo</th>
+                        <th data-sort="area" class="sortable col-mobile-hidden">Área</th>
+                        <th data-sort="unidade" class="sortable">Campus/Unidade</th>
+                        <th data-sort="situacao" class="sortable" title="Situação cadastral no DGP/CNPq — reflete o registro na Plataforma Lattes, independente do parecer de validação PRPGI">Situação DGP</th>
+                        <th data-sort="pesquisadores" class="sortable">Pesquisadores</th>
+                        <th data-sort="ano" class="sortable col-mobile-hidden">Ano</th>
+                    </tr>
+                </thead>
+                <tbody id="groups-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <div id="toast-container" aria-live="polite" aria-atomic="false"></div>
+
+    <script src="criterios.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

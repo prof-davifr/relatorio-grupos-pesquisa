@@ -1,0 +1,13 @@
+{
+  "name": "relatorio-grupos-pesquisa",
+  "version": "1.0.0",
+  "description": "Relatório de Validação de Grupos de Pesquisa — PRPGI/IFBA",
+  "scripts": {
+    "start": "npx live-server --port=8081",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^30.3.0",
+    "live-server": "^1.2.2"
+  }
+}

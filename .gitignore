@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# OS / IDE
+.DS_Store
+*.log
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local overrides
+.env
+
+# Dev local — colocar data.json e data-groups.json aqui para desenvolvimento local
+# Esses arquivos são gerados pelo build.js do repo dashboard-PRPGI
+data.json
+data-groups.json
+
+# Arquivos institucionais
+AGENTS.md

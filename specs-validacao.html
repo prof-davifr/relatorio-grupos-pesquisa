@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Specs — Sistema de Validação de Grupos de Pesquisa</title>
+    <style>
+        :root {
+            --bg: #ffffff;
+            --text: #222;
+            --accent: #32a041;
+            --accent-hover: #2a8a36;
+            --border: #e0e0e0;
+            --code-bg: #f5f5f5;
+            --blue: #1565c0;
+            --blue-bg: #e3f2fd;
+            --green: #2e7d32;
+            --green-bg: #e8f5e9;
+            --purple: #7b1fa2;
+            --purple-bg: #f3e5f5;
+            --red: #c62828;
+            --red-bg: #ffebee;
+            --orange: #f57f17;
+            --orange-bg: #fff8e1;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+            max-width: 960px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+            color: var(--text);
+            line-height: 1.65;
+            background: var(--bg);
+        }
+        h1 {
+            font-size: 1.8rem;
+            border-bottom: 3px solid var(--accent);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        h2 {
+            font-size: 1.35rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.3rem;
+            margin-top: 2.5rem;
+            color: var(--accent);
+        }
+        h3 {
+            font-size: 1.1rem;
+            margin-top: 1.5rem;
+            color: #444;
+        }
+        p { margin: 0.75rem 0; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.92rem;
+        }
+        th, td {
+            border: 1px solid var(--border);
+            padding: 0.5rem 0.75rem;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background: var(--code-bg);
+            font-weight: 600;
+        }
+        tr:nth-child(even) { background: #fafafa; }
+        code {
+            background: var(--code-bg);
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.88em;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+        pre {
+            background: var(--code-bg);
+            padding: 1rem 1.25rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.88rem;
+            line-height: 1.5;
+            border: 1px solid var(--border);
+        }
+        pre code { background: none; padding: 0; }
+        .tag {
+            display: inline-block;
+            padding: 0.15rem 0.55rem;
+            border-radius: 4px;
+            font-size: 0.78em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .tag-cnpq { background: var(--blue-bg); color: var(--blue); }
+        .tag-ifba { background: var(--green-bg); color: var(--green); }
+        .tag-both { background: var(--purple-bg); color: var(--purple); }
+        .tag-obrigatorio { background: var(--red-bg); color: var(--red); }
+        .tag-advertencia { background: var(--orange-bg); color: var(--orange); }
+        ul, ol { margin: 0.5rem 0 0.5rem 1.5rem; }
+        li { margin-bottom: 0.35rem; }
+        .section-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.25rem;
+        }
+        .flow-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin: 0.5rem 0;
+        }
+        .flow-step .num {
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+        .flow-step .desc { padding-top: 0.2rem; }
+        .parecer-table td:last-child { font-weight: 500; }
+        .parecer-certificado { color: var(--green); font-weight: 700; }
+        .parecer-pendente { color: var(--orange); font-weight: 700; }
+        .parecer-nao-certificado { color: var(--red); font-weight: 700; }
+        .open-questions li { font-style: italic; }
+        .open-questions li::marker { color: var(--accent); }
+        .ref {
+            font-size: 0.78em;
+            color: #888;
+            font-style: italic;
+        }
+        .score-table td:last-child {
+            text-align: right;
+            font-weight: 600;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+        .score-category {
+            background: var(--code-bg);
+            font-weight: 700;
+        }
+        .score-category td {
+            border-top: 2px solid var(--border);
+        }
+        footer {
+            margin-top: 3rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.82rem;
+            color: #888;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<span class="section-badge">Documento de Especificação — v2.0</span>
+<h1>Sistema de Validação de Grupos de Pesquisa</h1>
+<p>
+    Módulo derivado do Dashboard PRPGI que processa dados de produção acadêmica,
+    aplica critérios institucionais de validação conforme o
+    <strong>Regulamento Geral dos Grupos de Pesquisa do IFBA</strong> (aprovado pelo CONSEPE)
+    e diretrizes do <strong>CNPq/DGP</strong>, e gera relatórios de certificação.
+</p>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>1. Base Legal</h2>
+<table>
+    <tr><th>Documento</th><th>Descrição</th></tr>
+    <tr>
+        <td>Regulamento Geral dos Grupos de Pesquisa do IFBA</td>
+        <td>Aprovado pelo CONSEPE/IFBA. Define criação, certificação, avaliação bienal, pontuação mínima e tabela de produtividade (Anexo I). <span class="ref">Fonte: <code>regulamento_dos_grupos_de_pesquisa1.pdf</code></span></td>
+    </tr>
+    <tr>
+        <td>Lei nº 11.892/2008</td>
+        <td>Institui a Rede Federal de Educação Profissional, Científica e Tecnológica</td>
+    </tr>
+    <tr>
+        <td>Diretrizes CNPq — DGP</td>
+        <td>Diretório dos Grupos de Pesquisa: critérios de atipicidade, certificação e atualização</td>
+    </tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>2. Arquitetura</h2>
+
+<h3>2.1 Estrutura de Arquivos</h3>
+<pre><code>dashboard-PRPGI/
+├── data.json              ← Fonte de dados consolidada (reutilizado)
+├── build.js               ← Pipeline ETL (reutilizado)
+├── relatorios/            ← Novo módulo
+│   ├── index.html         ← Interface principal (seleção + dashboard)
+│   ├── style.css          ← Estilos + @media print para PDF
+│   ├── script.js          ← Orquestração UI + geração de relatório
+│   ├── criterios.js       ← Motor de validação (regras CNPq + IFBA + scoring)
+│   └── templates/
+│       └── relatorio.html ← Template do relatório imprimível/PDF</code></pre>
+
+<h3>2.2 Dependências de Dados</h3>
+<table>
+    <tr><th>Fonte (data.json)</th><th>Conteúdo</th><th>Uso no Módulo</th></tr>
+    <tr><td><code>data.grupos</code></td><td>Grupos DGP (situação, área, unidade, pesquisadores, estudantes, anoCriacao, linhasPesquisa, ultimoEnvio)</td><td>Identificação, seleção e critérios estruturais</td></tr>
+    <tr><td><code>data.bibliografica</code></td><td>Produção bibliográfica (Lattes por campus)</td><td>Contagem, classificação e scoring (Anexo I)</td></tr>
+    <tr><td><code>data.tecnica</code></td><td>Produção técnica</td><td>Contagem por tipo e scoring</td></tr>
+    <tr><td><code>data.inovacao</code></td><td>Patentes, softwares, marcas</td><td>Contagem de propriedade intelectual e scoring</td></tr>
+    <tr><td><code>data.concluidas</code></td><td>Orientações concluídas</td><td>Contagem por nível e scoring</td></tr>
+    <tr><td><code>data.andamento</code></td><td>Orientações em andamento</td><td>Contagem por nível e scoring</td></tr>
+    <tr><td><code>data.eventos</code></td><td>Participação e organização de eventos</td><td>Scoring de eventos (item 6 do Anexo I)</td></tr>
+    <tr><td><code>data.bancas</code></td><td>Participação em bancas</td><td>Scoring de bancas (item 10 do Anexo I)</td></tr>
+    <tr><td><code>data.bolsas</code></td><td>Bolsas de produtividade</td><td>Scoring (item 9 do Anexo I)</td></tr>
+    <tr><td><code>data.projetos</code></td><td>Projetos de pesquisa (andamento/finalizados)</td><td>Scoring (item 1 do Anexo I)</td></tr>
+    <tr><td><code>data.captação</code></td><td>Captação de recursos via projetos</td><td>Scoring (item 11 do Anexo I)</td></tr>
+    <tr><td><code>data.premios</code></td><td>Prêmios e títulos</td><td>Scoring (item 12 do Anexo I)</td></tr>
+    <tr><td><code>data.meta</code></td><td>Período, campuses, datas de fonte</td><td>Contexto temporal e rastreabilidade</td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>3. Motor de Validação (<code>criterios.js</code>)</h2>
+
+<h3>3.1 Critérios CNPq/DGP</h3>
+<table>
+    <tr><th>ID</th><th>Critério</th><th>Regra</th><th>Peso</th><th>Ref.</th></tr>
+    <tr>
+        <td>CNPQ-01</td>
+        <td>Situação do grupo</td>
+        <td><code>Situacao === "Certificado"</code></td>
+        <td><span class="tag tag-obrigatorio">Obrigatório</span></td>
+        <td class="ref">DGP</td>
+    </tr>
+    <tr>
+        <td>CNPQ-02</td>
+        <td>Mínimo de pesquisadores</td>
+        <td><code>Pesquisadores >= 3</code></td>
+        <td><span class="tag tag-obrigatorio">Obrigatório</span></td>
+        <td class="ref">Art. 2, §1</td>
+    </tr>
+    <tr>
+        <td>CNPQ-03</td>
+        <td>Máximo de pesquisadores</td>
+        <td><code>Pesquisadores <= 10</code></td>
+        <td><span class="tag tag-advertencia">Advertência</span></td>
+        <td class="ref">Art. 2, §2</td>
+    </tr>
+    <tr>
+        <td>CNPQ-04</td>
+        <td>Área de conhecimento</td>
+        <td><code>Area</code> não vazio</td>
+        <td><span class="tag tag-obrigatorio">Obrigatório</span></td>
+        <td class="ref">DGP</td>
+    </tr>
+    <tr>
+        <td>CNPQ-05</td>
+        <td>Linhas de pesquisa</td>
+        <td><code>1 <= LinhasPesquisa <= 5</code></td>
+        <td><span class="tag tag-obrigatorio">Obrigatório</span></td>
+        <td class="ref">Art. 1, p.único</td>
+    </tr>
+    <tr>
+        <td>CNPQ-06</td>
+        <td>Estudantes vinculados</td>
+        <td><code>Estudantes >= 1</code> (evita grupo atípico)</td>
+        <td><span class="tag tag-advertencia">Advertência</span></td>
+        <td class="ref">Art. 2, §2</td>
+    </tr>
+    <tr>
+        <td>CNPQ-07</td>
+        <td>Apoio técnico</td>
+        <td><code>ApoioTecnico >= 1</code> (evita grupo atípico)</td>
+        <td><span class="tag tag-advertencia">Advertência</span></td>
+        <td class="ref">Art. 2, §2</td>
+    </tr>
+    <tr>
+        <td>CNPQ-08</td>
+        <td>Atualização do DGP</td>
+        <td><code>UltimoEnvio</code> dentro dos últimos 12 meses</td>
+        <td><span class="tag tag-advertencia">Advertência</span></td>
+        <td class="ref">DGP</td>
+    </tr>
+</table>
+
+<h3>3.2 Critérios IFBA — Estruturais</h3>
+<table>
+    <tr><th>ID</th><th>Critério</th><th>Regra</th><th>Peso</th><th>Ref.</th></tr>
+    <tr>
+        <td>IFBA-01</td>
+        <td>Vínculo institucional</td>
+        <td><code>Unidade</code> mapeável a campus IFBA válido</td>
+        <td><span class="tag tag-obrigatorio">Obrigatório</span></td>
+        <td class="ref">Art. 1</td>
+    </tr>
+    <tr>
+        <td>IFBA-02</td>
+        <td>Relatório bienal entregue</td>
+        <td>Relatório bienal presente e dentro do prazo PRPGI</td>
+        <td><span class="tag tag-obrigatorio">Obrigatório</span></td>
+        <td class="ref">Art. 15</td>
+    </tr>
+    <tr>
+        <td>IFBA-03</td>
+        <td>Participação em evento PRPGI</td>
+        <td>≥ 1 participação anual em evento PRPGI/campus (Seminários de IC, Pesquisa, Inovação)</td>
+        <td><span class="tag tag-obrigatorio">Obrigatório</span></td>
+        <td class="ref">Art. 16, II</td>
+    </tr>
+    <tr>
+        <td>IFBA-04</td>
+        <td>Regulamento interno próprio</td>
+        <td>Regulamento interno anexado ao relatório bienal (obrigatório na 1ª avaliação)</td>
+        <td><span class="tag tag-advertencia">Advertência</span></td>
+        <td class="ref">Art. 15, §7</td>
+    </tr>
+    <tr>
+        <td>IFBA-05</td>
+        <td>Líder adimplente PRPGI</td>
+        <td>Primeiro líder adimplente com programas da PRPGI</td>
+        <td><span class="tag tag-obrigatorio">Obrigatório</span></td>
+        <td class="ref">Art. 4, §5</td>
+    </tr>
+    <tr>
+        <td>IFBA-06</td>
+        <td>Líder com titulação adequada</td>
+        <td>Primeiro líder com doutorado (ou mestrado se não houver doutor no grupo) + produção científica na área</td>
+        <td><span class="tag tag-obrigatorio">Obrigatório</span></td>
+        <td class="ref">Art. 4</td>
+    </tr>
+    <tr>
+        <td>IFBA-07</td>
+        <td>Líder único</td>
+        <td>Primeiro líder vinculado a apenas 1 grupo de pesquisa</td>
+        <td><span class="tag tag-obrigatorio">Obrigatório</span></td>
+        <td class="ref">Art. 4, §2</td>
+    </tr>
+</table>
+
+<h3>3.3 Critérios IFBA — Pontuação Mínima (Scoring)</h3>
+<p>
+    A pontuação é calculada conforme o <strong>Anexo I — Tabela de Pontuação da Produtividade</strong>.
+    Cada item de produção com autoria de mais de um membro do grupo só é pontuado uma vez
+    (Art. 16, III).
+</p>
+
+<table>
+    <tr><th>ID</th><th>Critério</th><th>Regra</th><th>Peso</th><th>Ref.</th></tr>
+    <tr>
+        <td>IFBA-08</td>
+        <td>Pontuação mínima: 1–2 anos</td>
+        <td><code>TotalPontos / NumMembros >= 6</code> (grupos com 1 a &lt;2 anos)</td>
+        <td><span class="tag tag-obrigatorio">Obrigatório</span></td>
+        <td class="ref">Art. 16, IV-a</td>
+    </tr>
+    <tr>
+        <td>IFBA-09</td>
+        <td>Pontuação mínima: 2–4 anos</td>
+        <td><code>TotalPontos / NumMembros >= 12</code> (grupos com 2 a 4 anos)</td>
+        <td><span class="tag tag-obrigatorio">Obrigatório</span></td>
+        <td class="ref">Art. 16, IV-b</td>
+    </tr>
+    <tr>
+        <td>IFBA-10</td>
+        <td>Pontuação mínima: &gt;4 anos</td>
+        <td><code>TotalPontos / NumMembros >= 20</code> (grupos com mais de 4 anos)</td>
+        <td><span class="tag tag-obrigatorio">Obrigatório</span></td>
+        <td class="ref">Art. 16, IV-c</td>
+    </tr>
+</table>
+
+<h3>3.4 Tabela de Pontuação — Anexo I (Resumo)</h3>
+<table class="score-table">
+    <tr><th>Item</th><th>Descrição</th><th>Pontos</th></tr>
+
+    <tr class="score-category"><td colspan="3">1. Projetos</td></tr>
+    <tr><td>1.1</td><td>Projeto de pesquisa cadastrado (em andamento)</td><td>2</td></tr>
+    <tr><td>1.2</td><td>Projeto de pesquisa finalizado no período</td><td>3</td></tr>
+
+    <tr class="score-category"><td colspan="3">2. Produção Bibliográfica</td></tr>
+    <tr><td>2.1</td><td>Trabalho apresentado em evento regional/local</td><td>2</td></tr>
+    <tr><td>2.2</td><td>Trabalho apresentado em evento nacional</td><td>4</td></tr>
+    <tr><td>2.3</td><td>Trabalho apresentado em evento internacional</td><td>8</td></tr>
+    <tr><td>2.4</td><td>Resumo expandido em evento nacional</td><td>3</td></tr>
+    <tr><td>2.5</td><td>Resumo expandido em evento internacional</td><td>5</td></tr>
+    <tr><td>2.6</td><td>Trabalho completo em evento nacional</td><td>7</td></tr>
+    <tr><td>2.7</td><td>Trabalho completo em evento internacional</td><td>8</td></tr>
+    <tr><td>2.8</td><td>Artigo completo em periódico sem Qualis ou Qualis C</td><td>6</td></tr>
+    <tr><td>2.9</td><td>Artigo completo em periódico com Qualis B</td><td>12</td></tr>
+    <tr><td>2.10</td><td>Artigo completo em periódico com Qualis A</td><td>18</td></tr>
+    <tr><td>2.11</td><td>Capítulo de livro com ISBN</td><td>5</td></tr>
+    <tr><td>2.12</td><td>Livro com ISBN</td><td>15</td></tr>
+    <tr><td>2.13</td><td>Partitura musical com registro</td><td>5</td></tr>
+
+    <tr class="score-category"><td colspan="3">3. Produções Técnicas</td></tr>
+    <tr><td>3.1</td><td>Assessoria e consultoria</td><td>5</td></tr>
+    <tr><td>3.2</td><td>Extensão tecnológica</td><td>10</td></tr>
+    <tr><td>3.3</td><td>Programa de computador sem registro</td><td>5</td></tr>
+    <tr><td>3.4</td><td>Cartas, mapas ou similares</td><td>5</td></tr>
+    <tr><td>3.5</td><td>Manutenção de obra artística</td><td>5</td></tr>
+    <tr><td>3.6</td><td>Maquete com registro</td><td>5</td></tr>
+
+    <tr class="score-category"><td colspan="3">4. Produções Culturais e Artísticas</td></tr>
+    <tr><td>4.1</td><td>Artes cênicas com registro</td><td>10</td></tr>
+    <tr><td>4.2</td><td>Música com registro</td><td>10</td></tr>
+    <tr><td>4.3</td><td>Artes visuais com registro</td><td>10</td></tr>
+    <tr><td>4.4</td><td>Outra produção artística/cultural com registro</td><td>10</td></tr>
+
+    <tr class="score-category"><td colspan="3">5. Inovação</td></tr>
+    <tr><td>5.1</td><td>Software com registro</td><td>20</td></tr>
+    <tr><td>5.2</td><td>Desenho Industrial com registro</td><td>20</td></tr>
+    <tr><td>5.3</td><td>Topografia de Circuito Integrado com registro</td><td>20</td></tr>
+    <tr><td>5.4</td><td>Cultivares protegidas</td><td>20</td></tr>
+    <tr><td>5.5</td><td>Cultivares com registro</td><td>20</td></tr>
+    <tr><td>5.6</td><td>Projeto de criação/fortalecimento de marca com registro</td><td>10</td></tr>
+    <tr><td>5.7</td><td>Depósito de Pedido de Patente/Modelo de Utilidade</td><td>20</td></tr>
+    <tr><td>5.8</td><td>Propriedade intelectual concedida (INPI ou org. internacional)</td><td>30</td></tr>
+    <tr><td>5.9</td><td>Propriedade intelectual licenciada por empresa</td><td>50</td></tr>
+
+    <tr class="score-category"><td colspan="3">6. Eventos</td></tr>
+    <tr><td>6.1</td><td>Participação como ministrante em eventos regionais/nacionais</td><td>5</td></tr>
+    <tr><td>6.2</td><td>Participação como ministrante em eventos internacionais</td><td>10</td></tr>
+    <tr><td>6.3</td><td>Organização de eventos nacionais</td><td>15</td></tr>
+    <tr><td>6.4</td><td>Organização de eventos regionais</td><td>7</td></tr>
+    <tr><td>6.5</td><td>Atuação em obras artísticas</td><td>5</td></tr>
+    <tr><td>6.6</td><td>Produção e coordenação de evento cultural/artístico</td><td>10</td></tr>
+    <tr><td>6.7</td><td>Criação/direção de espetáculo artístico</td><td>10</td></tr>
+    <tr><td>6.8</td><td>Produção audiovisual premiada</td><td>10</td></tr>
+
+    <tr class="score-category"><td colspan="3">7. Orientações Concluídas</td></tr>
+    <tr><td>7.1</td><td>Ensino médio integrado/subsequente (TCC, projeto integrador)</td><td>3</td></tr>
+    <tr><td>7.2</td><td>Curso superior (TCC)</td><td>4</td></tr>
+    <tr><td>7.3</td><td>Iniciação Científica, Tecnológica e Júnior</td><td>7</td></tr>
+    <tr><td>7.4</td><td>Especialização</td><td>15</td></tr>
+    <tr><td>7.5</td><td>Mestrado/Doutorado (coorientação)</td><td>20</td></tr>
+    <tr><td>7.6</td><td>Mestrado/Doutorado</td><td>30</td></tr>
+
+    <tr class="score-category"><td colspan="3">8. Orientações em Andamento</td></tr>
+    <tr><td>8.1</td><td>Ensino médio integrado/subsequente</td><td>1,5</td></tr>
+    <tr><td>8.2</td><td>Curso superior (TCC)</td><td>2</td></tr>
+    <tr><td>8.3</td><td>Iniciação Científica, Tecnológica e Júnior</td><td>3,5</td></tr>
+    <tr><td>8.4</td><td>Especialização</td><td>7,5</td></tr>
+    <tr><td>8.5</td><td>Mestrado/Doutorado (coorientação)</td><td>10</td></tr>
+    <tr><td>8.6</td><td>Mestrado/Doutorado</td><td>15</td></tr>
+
+    <tr class="score-category"><td colspan="3">9. Bolsa de Produtividade ou Similar</td></tr>
+    <tr><td>9.1</td><td>Bolsa de Produtividade em Pesquisa — CNPq</td><td>20</td></tr>
+    <tr><td>9.2</td><td>Bolsa de Produtividade Desen. Tec. e Extensão Inovadora — CNPq</td><td>20</td></tr>
+    <tr><td>9.3</td><td>Outra modalidade de bolsa de produtividade</td><td>10</td></tr>
+
+    <tr class="score-category"><td colspan="3">10. Participação em Bancas</td></tr>
+    <tr><td>10.1</td><td>Ensino técnico</td><td>2</td></tr>
+    <tr><td>10.2</td><td>Graduação/Especialização</td><td>3</td></tr>
+    <tr><td>10.3</td><td>Mestrado</td><td>5</td></tr>
+    <tr><td>10.4</td><td>Doutorado</td><td>8</td></tr>
+
+    <tr class="score-category"><td colspan="3">11. Captação de Recursos via Projetos</td></tr>
+    <tr><td>11.1</td><td>Junto ao IFBA</td><td>5</td></tr>
+    <tr><td>11.2</td><td>Junto a órgãos públicos</td><td>20</td></tr>
+    <tr><td>11.3</td><td>Junto a empresas privadas</td><td>30</td></tr>
+
+    <tr class="score-category"><td colspan="3">12. Prêmio/Título</td></tr>
+    <tr><td>12.1</td><td>Prêmio/título local</td><td>5</td></tr>
+    <tr><td>12.2</td><td>Prêmio/título nacional</td><td>10</td></tr>
+    <tr><td>12.3</td><td>Prêmio/título internacional</td><td>15</td></tr>
+</table>
+
+<p>
+    <strong>Cálculo:</strong> <code>TotalPontos / NúmeroDeMembros = PontuaçãoPorPesquisador</code>
+</p>
+
+<h3>3.5 Produção Científica do Líder (Art. 4, §7)</h3>
+<p>Para o líder ser considerado "com produção científica na área":</p>
+<table>
+    <tr><th>ID</th><th>Critério</th><th>Regra</th><th>Peso</th></tr>
+    <tr>
+        <td>IFBA-11</td>
+        <td>Eventos do líder</td>
+        <td>≥ 2 participações em eventos científicos com apresentação/palestra nos últimos <strong>2 anos</strong></td>
+        <td><span class="tag tag-obrigatorio">Obrigatório</span></td>
+    </tr>
+    <tr>
+        <td>IFBA-12</td>
+        <td>Publicação do líder</td>
+        <td>≥ 1 artigo em revista indexada OU 1 pedido de patente/registro INPI OU 1 capítulo/livro OU 1 produto artístico/cultural nos últimos <strong>4 anos</strong></td>
+        <td><span class="tag tag-obrigatorio">Obrigatório</span></td>
+    </tr>
+</table>
+
+<h3>3.6 API do Motor</h3>
+<pre><code>class ValidadorGrupo {
+    constructor(grupo, dados, periodoSelecionado)
+
+    // Executa todos os critérios e retorna resultado
+    validar() → ResultadoValidacao
+
+    // Calcula pontuação total conforme Anexo I
+    calcularPontuacao() → {
+        totalPontos: number,
+        numMembros: number,
+        pontosPorMembro: number,
+        pontuacaoMinimaRequerida: number,  // 6, 12 ou 20
+        atingiuMinimo: boolean,
+        detalhamento: {
+            projetos: number,
+            bibliografica: number,
+            tecnica: number,
+            cultural: number,
+            inovacao: number,
+            eventos: number,
+            orientacoesConcluidas: number,
+            orientacoesAndamento: number,
+            bolsas: number,
+            bancas: number,
+            captacao: number,
+            premios: number
+        }
+    }
+
+    // Verifica produção científica do líder
+    validarProducaoLider() → {
+        eventosUltimos2Anos: number,
+        publicacoesUltimos4Anos: number,
+        passou: boolean
+    }
+
+    // Retorna produções cruzadas por tipo
+    getProducaoCruzada() → {
+        bibliografica: [...],
+        tecnica: [...],
+        inovacao: [...],
+        concluidas: [...],
+        andamento: [...],
+        eventos: [...],
+        bancas: [...],
+        projetos: [...]
+    }
+
+    // Retorna métricas consolidadas
+    getMetricas() → {
+        totalProducoes: number,
+        porAno: { [ano]: number },
+        porTipo: { bibliografica, tecnica, inovacao, orientacoes, eventos, bancas },
+        pesquisadores: number,
+        estudantes: number,
+        apoioTecnico: number,
+        linhasPesquisa: number,
+        anoCriacao: number,
+        tempoFormacaoAnos: number
+    }
+}
+
+interface ResultadoValidacao {
+    grupo: {
+        nome: string,
+        area: string,
+        unidade: string,
+        situacao: string,
+        anoCriacao: number
+    }
+    criterios: [
+        {
+            id: string,
+            nome: string,
+            fonte: "CNPq" | "IFBA",
+            tipo: "obrigatorio" | "advertencia",
+            passou: boolean,
+            detalhe: string,
+            artigoRef: string  // ex: "Art. 16, IV-b"
+        }
+    ]
+    pontuacao: {
+        total: number,
+        membros: number,
+        porMembro: number,
+        minimoRequerido: number,
+        atingiu: boolean
+    }
+    resumo: {
+        totalCriterios: number,
+        obrigatoriosPassados: number,
+        obrigatoriosFalhos: number,
+        advertencias: number,
+        parecer: "CERTIFICADO" | "NAO_CERTIFICADO" | "INADIMPLENTE"
+    }
+    periodo: { inicio: number, fim: number }
+    geradoEm: string  // ISO 8601
+}</code></pre>
+
+<h3>3.7 Lógica de Parecer</h3>
+<table class="parecer-table">
+    <tr><th>Parecer</th><th>Condição</th><th>Consequência (Regulamento)</th></tr>
+    <tr>
+        <td class="parecer-certificado">CERTIFICADO</td>
+        <td>Todos os critérios obrigatórios passaram + pontuação mínima atingida</td>
+        <td>Manutenção da certificação institucional</td>
+    </tr>
+    <tr>
+        <td class="parecer-pendente">CERTIFICADO c/ Advertências</td>
+        <td>Todos obrigatórios passaram + pontuação atingida, mas há ≥ 1 advertência</td>
+        <td>Manutenção da certificação, mas com recomendações</td>
+    </tr>
+    <tr>
+        <td class="parecer-nao-certificado">NÃO CERTIFICADO</td>
+        <td>≥ 1 critério obrigatório falhou OU pontuação mínima não atingida</td>
+        <td>Prazo de <strong>2 anos</strong> para adequação com plano de ação (Art. 17). Se persistir, grupo deve ser excluído do DGP/CNPq</td>
+    </tr>
+    <tr>
+        <td class="parecer-nao-certificado">INADIMPLENTE</td>
+        <td>Relatório bienal não entregue no prazo</td>
+        <td>Bloqueio de todos os membros em programas PRPGI + perda de certificação. Efeitos cessam 3 meses após entrega (Art. 15, §4-5)</td>
+    </tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>4. Interface do Usuário</h2>
+
+<h3>4.1 Componentes da Tela Principal</h3>
+<table>
+    <tr><th>Componente</th><th>Descrição</th></tr>
+    <tr><td>Seletor de Grupo</td><td>Dropdown com lista de grupos DGP, filtrável por área e unidade</td></tr>
+    <tr><td>Seletor de Período</td><td>Igual ao dashboard existente (todo período, últimos N anos, ano atual)</td></tr>
+    <tr><td>Info do Grupo</td><td>Ano de criação, tempo de formação, faixa de pontuação aplicável (6/12/20)</td></tr>
+    <tr><td>Painel de Métricas</td><td>KPIs: total pontos, pontos/membro, mínimo requerido, total produções, por tipo, pesquisadores, estudantes</td></tr>
+    <tr><td>Detalhamento de Pontuação</td><td>Tabela com pontuação por categoria do Anexo I (projetos, bibliográfica, técnica, etc.)</td></tr>
+    <tr><td>Checklist de Validação</td><td>Tabela visual com cada critério, status (✓ / ✗ / ⚠), detalhe e referência ao artigo</td></tr>
+    <tr><td>Produção do Líder</td><td>Seção dedicada: eventos (últimos 2 anos) + publicações (últimos 4 anos)</td></tr>
+    <tr><td>Parecer Final</td><td>Badge colorido: CERTIFICADO (verde), CERTIFICADO c/ Advertências (amarelo), NÃO CERTIFICADO (vermelho), INADIMPLENTE (vermelho escuro)</td></tr>
+    <tr><td>Botão Gerar Relatório</td><td>Abre relatório formatado em nova aba para impressão/PDF</td></tr>
+</table>
+
+<h3>4.2 Fluxo de Interação</h3>
+<div class="flow-step">
+    <div class="num">1</div>
+    <div class="desc">Usuário seleciona grupo e período</div>
+</div>
+<div class="flow-step">
+    <div class="num">2</div>
+    <div class="desc">Sistema cruza dados automaticamente (grupo → unidade → campus → produções)</div>
+</div>
+<div class="flow-step">
+    <div class="num">3</div>
+    <div class="desc">Calcula pontuação total conforme Anexo I e determina faixa mínima (6/12/20) pelo tempo de formação</div>
+</div>
+<div class="flow-step">
+    <div class="num">4</div>
+    <div class="desc">Exibe métricas + detalhamento de pontuação + checklist de validação em tempo real</div>
+</div>
+<div class="flow-step">
+    <div class="num">5</div>
+    <div class="desc">Exibe parecer final com consequência regulamentar aplicável</div>
+</div>
+<div class="flow-step">
+    <div class="num">6</div>
+    <div class="desc">Usuário clica "Gerar Relatório"</div>
+</div>
+<div class="flow-step">
+    <div class="num">7</div>
+    <div class="desc">Abre relatório formatado (HTML) com botão "Imprimir / Salvar PDF" via <code>window.print()</code></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>5. Template de Relatório</h2>
+
+<h3>5.1 Estrutura do Documento</h3>
+<pre><code>┌──────────────────────────────────────────────────────┐
+│  CABEÇALHO INSTITUCIONAL                             │
+│  IFBA - PRPGI                                        │
+│  Relatório de Validação de Grupo de Pesquisa         │
+│  Data de geração: DD/MM/AAAA HH:MM                  │
+├──────────────────────────────────────────────────────┤
+│  1. DADOS DO GRUPO                                   │
+│     Nome, Área, Unidade, Situação DGP                │
+│     Ano de criação, Tempo de formação                │
+│     Pesquisadores, Estudantes, Apoio Técnico         │
+│     Linhas de pesquisa                               │
+├──────────────────────────────────────────────────────┤
+│  2. PRODUÇÃO NO PERÍODO                              │
+│     Tabela: Ano × Tipo (Bibliográfica, Técnica,      │
+│     Inovação, Orientações, Eventos, Bancas)          │
+│     Resumo quantitativo por categoria                │
+├──────────────────────────────────────────────────────┤
+│  3. PONTUAÇÃO (ANEXO I)                              │
+│     Detalhamento por categoria (12 itens)            │
+│     Total de pontos / Nº membros = Pontos por membro │
+│     Mínimo requerido: 6 / 12 / 20                    │
+│     Resultado: ATINGIU / NÃO ATINGIU                 │
+├──────────────────────────────────────────────────────┤
+│  4. PRODUÇÃO CIENTÍFICA DO LÍDER                     │
+│     Eventos nos últimos 2 anos                       │
+│     Publicações nos últimos 4 anos                   │
+├──────────────────────────────────────────────────────┤
+│  5. VALIDAÇÃO - CRITÉRIOS CNPq                       │
+│     Tabela: ID | Critério | Status | Detalhe | Ref.  │
+├──────────────────────────────────────────────────────┤
+│  6. VALIDAÇÃO - CRITÉRIOS IFBA                       │
+│     Tabela: ID | Critério | Status | Detalhe | Ref.  │
+├──────────────────────────────────────────────────────┤
+│  7. PARECER FINAL                                    │
+│     Badge + texto explicativo                        │
+│     Consequência regulamentar                        │
+│     Linha de assinatura                              │
+├──────────────────────────────────────────────────────┤
+│  RODAPÉ: Rastreabilidade (fonte, versão, data)       │
+└──────────────────────────────────────────────────────┘</code></pre>
+
+<h3>5.2 Geração de PDF</h3>
+<p>
+    Usar <code>window.print()</code> com CSS <code>@media print</code> para gerar PDF
+    nativo do navegador. Sem dependência de biblioteca externa. O template de relatório
+    terá estilos específicos para impressão: margens adequadas, cores otimizadas,
+    quebras de página controladas.
+</p>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>6. Regras de Negócio</h2>
+
+<h3>6.1 Cruzamento de Dados</h3>
+<p>
+    Os grupos DGP possuem campo <code>Unidade</code> (ex: "IFBA - Salvador").
+    O cruzamento com produções usa o mapeamento
+    <code>Unidade → Campus Code → dados de produção</code>,
+    reutilizando a lógica <code>CAMPUS_TO_CITY</code> existente no dashboard.
+</p>
+
+<h3>6.2 Período de Avaliação</h3>
+<p>
+    O período selecionado pelo usuário filtra todas as produções para cálculo de pontuação.
+    Os critérios temporais específicos usam janelas fixas:
+</p>
+<ul>
+    <li><strong>Eventos do líder:</strong> últimos 2 anos (Art. 4, §7-a)</li>
+    <li><strong>Publicações do líder:</strong> últimos 4 anos (Art. 4, §7-b)</li>
+    <li><strong>Pontuação do grupo:</strong> período bienal de avaliação definido pela PRPGI (Art. 16)</li>
+</ul>
+
+<h3>6.3 Cálculo de Tempo de Formação</h3>
+<p>
+    <code>TempoFormacao = AnoAtual - AnoCriacao</code>
+</p>
+<table>
+    <tr><th>Tipo de grupo</th><th>Faixa</th><th>Pontuação mínima/membro</th></tr>
+    <tr><td>Novo</td><td>1 ≤ tempo &lt; 2 anos</td><td>6 pontos</td></tr>
+    <tr><td>Em consolidação</td><td>2 ≤ tempo ≤ 4 anos</td><td>12 pontos</td></tr>
+    <tr><td>Consolidado</td><td>tempo &gt; 4 anos</td><td>20 pontos</td></tr>
+</table>
+
+<h3>6.4 Pontuação por Autoria Múltipla</h3>
+<p>
+    Cada item de produção que tenha autoria de mais de um membro do grupo
+    só poderá ser pontuado <strong>uma vez</strong> e em apenas um item do Anexo I
+    (Art. 16, III). O sistema deve detectar duplicatas por título/DOI e deduzir automaticamente.
+</p>
+
+<h3>6.5 Múltiplos Campi</h3>
+<p>
+    Se um grupo tiver pesquisadores vinculados a múltiplos campi, as produções de
+    todos os campi relevantes são agregadas. O campo <code>Unidade</code> do grupo
+    define o campus primário para fins de mapeamento.
+</p>
+
+<h3>6.6 Grupos com menos de 1 ano</h3>
+<p>
+    Grupos com menos de 1 ano de formação devem apresentar relatórios, mas não são
+    pontuados para efeito de critério de certificação (Art. 15, §6).
+</p>
+
+<h3>6.7 Recuperação de Certificação</h3>
+<p>
+    Grupos "Não Certificado" têm prazo de até <strong>2 anos</strong> para adequação,
+    devendo apresentar plano de ação. Se atenderem aos requisitos, retornam ao status
+    "Certificado". Se permanecerem "Não Certificado" por mais de 2 anos, o líder deve
+    excluir o grupo do DGP/CNPq (Art. 17).
+</p>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>7. Rastreabilidade</h2>
+<p>Cada relatório deve incluir no rodapé:</p>
+<ul>
+    <li>Versão dos dados: <code>meta.generatedAt</code></li>
+    <li>Fontes utilizadas: <code>meta.sourceDates</code> (label + data de modificação)</li>
+    <li>Versão do motor de validação (semver)</li>
+    <li>Referência ao regulamento: "Regulamento Geral dos Grupos de Pesquisa do IFBA — aprovado pelo CONSEPE"</li>
+</ul>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>8. Questões em Aberto</h2>
+<ul class="open-questions">
+    <li><strong>Autenticação:</strong> O sistema precisa de login ou é aberto para consulta?</li>
+    <li><strong>Histórico:</strong> Deve haver armazenamento de relatórios gerados anteriormente?</li>
+    <li><strong>Deduplicação:</strong> Como identificar produções duplicadas entre membros do mesmo grupo (mesmo título, DOI diferente)?</li>
+    <li><strong>Qualis desatualizado:</strong> Como tratar periódicos sem Qualis ou com Qualis não atualizado (item 2.8)?</li>
+    <li><strong>Produções culturais/artísticas:</strong> Os dados do Lattes/DGP capturam adequadamente esses tipos de produção?</li>
+</ul>
+
+<footer>
+    Documento de especificação técnica — Dashboard PRPGI / IFBA<br>
+    Base legal: Regulamento Geral dos Grupos de Pesquisa do IFBA (CONSEPE) + CNPq/DGP
+</footer>
+
+</body>
+</html>
