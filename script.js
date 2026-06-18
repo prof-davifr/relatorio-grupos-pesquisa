@@ -398,16 +398,21 @@ function filterCurrentTableRows() {
     });
 }
 
-function gerarRelatorio() {
+function gerarRelatorio(edits) {
     if (!STATE.resultado) return;
 
-    const resultado = STATE.resultado;
-    const metricas = STATE.validador.getMetricas();
     const meta = STATE.dados.meta;
 
-    const pont = resultado.pontuacao;
+    const resultadoBase = STATE.resultado;
+    const editsApplied = edits ? aplicarEdicoes(resultadoBase, edits) : null;
+    const resultado = editsApplied || resultadoBase;
+    const metricas = editsApplied ? computarMetricas(editsApplied) : STATE.validador.getMetricas();
+    const pont = editsApplied ? computarPontuacao(editsApplied) : resultadoBase.pontuacao;
+
     const criteriosCNPQ = resultado.criterios.filter(c => c.fonte === 'CNPq');
     const criteriosIFBA = resultado.criterios.filter(c => c.fonte === 'IFBA');
+
+    const declaracao = edits && edits.declaracao ? edits.declaracao : null;
 
     const renderChecklistHTML = (criterios) => {
         const th = 'border:1px solid #ddd;padding:4px 8px;background:#f5f5f5;font-weight:600;font-size:8pt;text-transform:uppercase;';
@@ -641,13 +646,9 @@ function gerarRelatorio() {
     <h2>2. Pesquisadores do Grupo</h2>
     <div style="columns:2;column-gap:1rem;font-size:9pt;">
         ${(() => {
-            const membrosMap = STATE.validador.grupo.membrosMap || [];
-            const nomesRaw = (STATE.validador.grupo.PesquisadoresNomes || STATE.validador.grupo.pesquisadoresNomes || '');
-            const lista = membrosMap.length > 0
-                ? membrosMap
-                : nomesRaw.split(';').map(n => ({ nome: n.trim(), siape: null })).filter(m => m.nome);
+            const lista = resultado.membros || [];
             if (lista.length === 0) return '<p style="color:#888;font-style:italic;">Nomes não disponíveis na fonte de dados.</p>';
-            const liderId = STATE.validador.grupo.LiderId || null;
+            const liderId = resultado.grupo.LiderId || null;
             return lista.map((m, i) => {
                 const siapeStr = m.siape ? ` <span style="font-family:monospace;color:#555;font-size:8pt;">[SIAPE: ${m.siape}]</span>` : ' <span style="color:#aaa;font-size:8pt;">[SIAPE não resolvido]</span>';
                 const liderStr = (m.siape && m.siape === liderId) ? ' <strong style="color:#32a041;">(Líder)</strong>' : '';
@@ -676,15 +677,47 @@ function gerarRelatorio() {
     <h2>6. Validação — Critérios IFBA</h2>
     ${renderChecklistHTML(criteriosIFBA)}
 
-    <h2>7. Parecer de Validação PRPGI/IFBA</h2>
-    <p><span class="badge badge-${resultado.resumo.parecer.toLowerCase().replace(/_/g, '-')}">${PARECER_LABELS_UPPER[resultado.resumo.parecer] || resultado.resumo.parecer}</span></p>
-    <p style="margin-top:0.5rem;font-size:0.85rem;color:#555;background:#f9f9f9;border-left:3px solid #bbb;padding:0.5rem 0.75rem;border-radius:0 4px 4px 0;">
-        <strong>Nota:</strong> A situação cadastral do grupo no DGP/CNPq é <strong>"${resultado.grupo.situacao}"</strong>, que reflete o registro na Plataforma Lattes e é independente deste parecer de validação institucional PRPGI/IFBA.
+    <h2>7. Declaração do Líder</h2>
+    <p style="margin-bottom:0.75rem;">
+        <input type="checkbox" ${declaracao && declaracao.checked ? 'checked' : ''} disabled>
+        Declaro que as informações prestadas neste relatório são verdadeiras e refletem a produção do grupo no período indicado.
     </p>
-    <div class="consequencia"><strong>Consequência:</strong> ${PARECER_CONSEQUENCIAS[resultado.resumo.parecer]}</div>
-    <p style="margin-top:1.5rem;">Assinatura: ________________________________________ Data: ___/___/_______</p>
+    ${declaracao && declaracao.observacoes ? '<div style="background:#f9f9f9;border-left:3px solid #32a041;padding:0.5rem 0.75rem;margin-bottom:1rem;font-size:9pt;border-radius:0 4px 4px 0;"><strong>Observações:</strong> ' + escapeHtml(declaracao.observacoes) + '</div>' : ''}
+    <div style="margin-top:1rem;font-size:10pt;">
+        <div style="margin-bottom:0.5rem;">
+            <span style="font-weight:600;">Assinatura (gov.br):</span>
+        </div>
+        <div style="border:1px solid #999;border-radius:4px;min-height:80px;padding:0.5rem;margin-bottom:0.5rem;background:#fff;">&nbsp;</div>
+    </div>
 
-    <h2 style="margin-top:3rem;border-top:2px solid #32a041;padding-top:1rem;">8. Anexos — Produções Pontuadas (${resultado.periodo.startYear}–${resultado.periodo.endYear})</h2>
+    <h2 style="margin-top:3rem;">8. Campo reservado à PRPGI</h2>
+    <p style="color:#888;font-style:italic;">Parecer a ser preenchido pela Pró-Reitoria de Pesquisa, Pós-Graduação e Inovação</p>
+    <div style="border:1px solid #ddd;border-radius:8px;padding:1.25rem 1.5rem;margin-top:0.75rem;background:#fafafa;">
+        <p style="font-weight:600;margin-bottom:0.75rem;">Parecer:</p>
+        <div style="display:flex;gap:2rem;">
+            <div style="flex:3;">
+                <label style="display:block;margin-bottom:0.4rem;font-size:9pt;"><input type="checkbox" disabled style="margin-right:0.35rem;"> Certificado</label>
+                <label style="display:block;margin-bottom:0.4rem;font-size:9pt;"><input type="checkbox" disabled style="margin-right:0.35rem;"> Certificado com ressalvas</label>
+                <label style="display:block;margin-bottom:0.4rem;font-size:9pt;"><input type="checkbox" disabled style="margin-right:0.35rem;"> Pendente</label>
+            </div>
+            <div style="flex:2;">
+                <label style="display:block;margin-bottom:0.4rem;font-size:9pt;"><input type="checkbox" disabled style="margin-right:0.35rem;"> Não certificado</label>
+                <label style="display:block;margin-bottom:0.4rem;font-size:9pt;"><input type="checkbox" disabled style="margin-right:0.35rem;"> Inadimplente</label>
+            </div>
+        </div>
+        <div style="margin-top:0.75rem;">
+            <p style="font-weight:600;margin-bottom:0.4rem;">Observações:</p>
+            <div style="border:1px solid #ccc;border-radius:4px;min-height:60px;padding:0.5rem;font-size:9pt;color:#aaa;">&nbsp;</div>
+        </div>
+        <div style="margin-top:1rem;font-size:9pt;">
+            <div style="margin-bottom:0.5rem;">
+                <span style="font-weight:600;">Assinatura PRPGI (gov.br):</span>
+            </div>
+            <div style="border:1px solid #999;border-radius:4px;min-height:80px;padding:0.5rem;margin-bottom:0.5rem;background:#fff;">&nbsp;</div>
+        </div>
+    </div>
+
+    <h2 style="margin-top:3rem;border-top:2px solid #32a041;padding-top:1rem;">9. Anexos — Produções Pontuadas (${resultado.periodo.startYear}–${resultado.periodo.endYear})</h2>
     <p style="font-size:9pt;color:#666;margin-bottom:1rem;">Registros pontuados por categoria, com Item do Anexo I e pontos atribuídos. Cada produção é contada uma única vez.</p>
     ${renderAnexosHTML()}
 
@@ -711,6 +744,89 @@ function gerarRelatorio() {
     if (!win) {
         showToast('Pop-up bloqueado. Permita pop-ups para gerar o relatório.', 6000, 'warning');
     }
+}
+
+function aplicarEdicoes(base, edits) {
+    var r = JSON.parse(JSON.stringify(base));
+    if (edits.membrosAtivos) {
+        r.membros = base.membros.filter(function(_, i) { return edits.membrosAtivos[i]; });
+    }
+    if (edits.producoesAtivas) {
+        r.producoes = {};
+        Object.keys(base.producoes).forEach(function(cat) {
+            var items = base.producoes[cat] || [];
+            var active = edits.producoesAtivas[cat] || [];
+            r.producoes[cat] = items.filter(function(_, i) { return active[i]; });
+        });
+    }
+    if (edits.criteriosOverride) {
+        r.criterios = base.criterios.map(function(c) {
+            var val = edits.criteriosOverride[c.id];
+            if (val === 'sim') { c = JSON.parse(JSON.stringify(c)); c.passou = true; c.detalhe = 'Atendido (avaliador)'; }
+            else if (val === 'nao') { c = JSON.parse(JSON.stringify(c)); c.passou = false; c.detalhe = 'Nao atendido (avaliador)'; }
+            return c;
+        });
+    }
+    if (edits.dadosGrupo) { r.grupo = Object.assign({}, r.grupo, edits.dadosGrupo); }
+    return r;
+}
+
+function computarMetricas(r) {
+    var total = 0, ptsPorCat = {};
+    Object.keys(r.producoes).forEach(function(cat) {
+        (r.producoes[cat] || []).forEach(function(p) { total += Number(p.pontos || 0); });
+    });
+    var porMembro = r.membros.length > 0 ? total / r.membros.length : 0;
+    var tf = computarTempoFormacao(r);
+    var minimo = getPontuacaoMinima(tf);
+    return {
+        pesquisadores: r.membros.length,
+        estudantes: r.grupo.estudantes || 0,
+        porTipo: {
+            bibliografica: (r.producoes.bibliografica || []).length,
+            tecnica: (r.producoes.tecnica || []).length,
+            inovacao: (r.producoes.inovacao || []).length,
+            orientacoes: ((r.producoes.orientacoesConcluidas || []).length + (r.producoes.orientacoesAndamento || []).length),
+            eventos: (r.producoes.eventos || []).length,
+            bancas: (r.producoes.bancas || []).length
+        },
+        bancasIndisponivel: false,
+        total: total,
+        porMembro: porMembro,
+        minimo: minimo,
+        atingiu: minimo !== null ? porMembro >= minimo : true
+    };
+}
+
+function computarTempoFormacao(r) {
+    var ano = Number(r.grupo.anoCriacao) || 0;
+    if (!ano || ano <= 0) return 0;
+    return new Date().getFullYear() - ano;
+}
+
+function computarPontuacao(r) {
+    var tf = computarTempoFormacao(r);
+    var minimo = getPontuacaoMinima(tf);
+    var faixa = getFaixaGrupo ? getFaixaGrupo(tf) : 'Consolidado';
+    var producoesPorCategoria = {};
+    Object.keys(r.producoes).forEach(function(cat) {
+        producoesPorCategoria[cat] = r.producoes[cat] || [];
+    });
+    var total = 0;
+    Object.keys(producoesPorCategoria).forEach(function(cat) {
+        (producoesPorCategoria[cat] || []).forEach(function(p) { total += Number(p.pontos || 0); });
+    });
+    var membros = r.membros.length || 1;
+    var porMembro = total / membros;
+    return {
+        producoesPorCategoria: producoesPorCategoria,
+        membros: membros,
+        porMembro: porMembro,
+        minimoRequerido: minimo,
+        faixaGrupo: faixa,
+        tempoFormacao: tf,
+        atingiu: minimo !== null ? porMembro >= minimo : true
+    };
 }
 
 // Initialization
@@ -830,7 +946,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const statusFilter = $('status-filter');
 
     if (grupoFilter) grupoFilter.addEventListener('change', executarValidacao);
-    if (gerarRelatorioBtn) gerarRelatorioBtn.addEventListener('click', gerarRelatorio);
+    if (gerarRelatorioBtn) gerarRelatorioBtn.addEventListener('click', mostrarEditor);
     if (groupSearch) groupSearch.addEventListener('input', filterGroupsTable);
     if (researcherSearch) researcherSearch.addEventListener('input', filterGroupsTable);
     if (statusFilter) statusFilter.addEventListener('change', filterGroupsTable);
@@ -855,3 +971,223 @@ document.addEventListener('DOMContentLoaded', async () => {
         avisoCiencia.focus();
     }
 });
+
+// ── Interactive Editor Overlay ─────────────────────────────────────────
+var _editState = null;
+
+function mostrarEditor() {
+    if (!STATE.resultado) return;
+    _editState = { original: JSON.parse(JSON.stringify(STATE.resultado)) };
+    var r = _editState.original;
+    var esc = function(v) { return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); };
+
+    var overlay = document.createElement('div');
+    overlay.id = 'editor-overlay';
+    overlay.innerHTML = [
+        '<div class="editor-modal"><div class="editor-modal-header">',
+        '<span class="editor-title">Revisao e Edicao do Relatorio</span>',
+        '<span class="editor-status" id="edit-status">Modo de revisao</span>',
+        '<button class="editor-close" onclick="fecharEditor()">&times;</button></div>',
+        '<div class="editor-body">',
+        // Section 1: Dados
+        '<div class="edit-section"><div class="edit-section-title">1. Dados do Grupo</div>',
+        '<div class="edit-grid-2">',
+        '<div class="edit-field"><label>Nome</label><input id="edit-nome" value="'+esc(r.grupo.nome)+'"></div>',
+        '<div class="edit-field"><label>Campus</label><input id="edit-campus" value="'+esc(campusToCidade(r.grupo.unidade))+'"></div>',
+        '<div class="edit-field"><label>Area</label><input id="edit-area" value="'+esc(r.grupo.area)+'"></div>',
+        '<div class="edit-field"><label>Ano de Criacao</label><input id="edit-ano" type="number" value="'+(r.grupo.anoCriacao||'')+'"></div>',
+        '</div></div>',
+        // Section 2: Membros
+        '<div class="edit-section"><div class="edit-section-title">2. Pesquisadores</div><div class="membros-list">',
+        (function() {
+            var h = '';
+            var liderId = r.grupo.LiderId || null;
+            (r.membros || []).forEach(function(m, i) {
+                var ehLider = m.siape && liderId && m.siape === liderId;
+                h += '<label class="membro-item'+(ehLider?' membro-item--lider':'')+'">' +
+                    '<input type="checkbox" class="membro-checkbox" data-idx="'+i+'" checked onchange="recalcularEditor()">' +
+                    esc(m.nome) +
+                    (ehLider ? ' <span class="membro-lider">(Lider)</span>' : '') +
+                    (m.siape ? ' <span class="membro-siape">[SIAPE: '+esc(m.siape)+']</span>' : '') +
+                    '</label>';
+            });
+            return h;
+        })() +
+        '</div><div class="edit-membro-count"><strong id="count-membros">'+(r.membros||[]).length+'</strong> pesquisador(es) ativo(s)</div></div>',
+        // Section 3: Producao
+        '<div class="edit-section"><div class="edit-section-title">3. Producao no Periodo</div>',
+        (function() {
+            var h = '';
+            Object.keys(r.producoes).forEach(function(cat) {
+                var items = r.producoes[cat] || [];
+                if (items.length === 0) return;
+                h += '<div class="prod-categoria" data-cat="'+cat+'">' +
+                    '<div class="prod-cat-title"><strong>'+cat.charAt(0).toUpperCase()+cat.slice(1)+'</strong> &mdash; <span class="prod-cat-pts">0</span> pts (<span class="prod-cat-count">0</span> itens)</div>' +
+                    '<table class="prod-table"><thead><tr><th class="col-incluir">Incluir</th><th class="col-ano">Ano</th><th class="col-itemid">Item</th><th class="col-titulo">Titulo</th><th class="col-estrato">Estrato</th><th class="col-pts">Pts</th></tr></thead><tbody>';
+                items.forEach(function(p, i) {
+                    h += '<tr class="prod-row"><td class="col-incluir"><input type="checkbox" class="prod-checkbox" data-cat="'+cat+'" data-idx="'+i+'" checked onchange="recalcularEditor()"></td>' +
+                        '<td class="col-ano">'+esc(p.ano)+'</td>' +
+                        '<td class="col-itemid">'+esc(p.itemId)+'</td>' +
+                        '<td class="col-titulo">'+esc(p.titulo)+(p.periodico?'<br><em style="font-size:0.75rem;color:#888;">'+esc(p.periodico)+'</em>':'')+'</td>' +
+                        '<td class="col-estrato">'+esc(p.estrato||'-')+'</td>' +
+                        '<td class="col-pts">'+(p.pontos||'0')+'</td></tr>';
+                });
+                h += '</tbody></table></div>';
+            });
+            return h;
+        })() +
+        '</div>',
+        // Section 4: Pontuacao
+        '<div class="edit-section"><div class="edit-section-title">4. Pontuacao (Anexo I)</div><div class="pontuacao-sumario">' +
+        '<div class="pont-item"><span class="pont-label">Total</span><span class="pont-valor" id="pont-total">0</span></div>' +
+        '<div class="pont-item"><span class="pont-label">Membros Ativos</span><span class="pont-valor" id="pont-membros">0</span></div>' +
+        '<div class="pont-item"><span class="pont-label">Pontos/Membro</span><span class="pont-valor" id="pont-por-membro">0</span></div>' +
+        '<div class="pont-item"><span class="pont-label">Minimo</span><span class="pont-valor" id="pont-minimo">&mdash;</span></div>' +
+        '<div class="pont-item"><span class="pont-label">Resultado</span><span class="pont-valor" id="pont-resultado">&mdash;</span></div>' +
+        '</div></div>',
+        // Section 5: Criterios CNPq
+        '<div class="edit-section"><div class="edit-section-title">5. Criterios CNPq/DGP</div>',
+        buildCriteriosTable(r.criterios.filter(function(c) { return c.fonte === 'CNPq'; }), esc),
+        '</div>',
+        // Section 6: Criterios IFBA
+        '<div class="edit-section"><div class="edit-section-title">6. Criterios IFBA</div>',
+        buildCriteriosTable(r.criterios.filter(function(c) { return c.fonte === 'IFBA'; }), esc),
+        '</div>',
+        // Section 7: Declaracao
+        '<div class="edit-section"><div class="edit-section-title">7. Declaracao do Lider</div>',
+        '<div style="padding:1rem;display:flex;flex-direction:column;gap:0.75rem;">',
+        '<label style="display:flex;align-items:center;gap:0.5rem;font-weight:600;">' +
+        '<input type="checkbox" id="edit-declaracao"> Declaro que as informacoes prestadas neste relatorio sao verdadeiras e refletem a producao do grupo no periodo indicado.</label>',
+        '<div class="edit-field"><label>Observacoes (opcional)</label><textarea id="edit-observacoes" rows="3"></textarea></div>',
+        '</div></div>',
+        '</div>',
+        // Footer with buttons
+        '<div class="editor-footer">',
+        '<button class="btn-secundario" onclick="fecharEditor()">Cancelar</button>',
+        '<button class="btn-primario" id="btn-gerar-pdf" onclick="gerarPDFComEdicao()">Gerar Relatório</button>',
+        '</div></div>'
+    ].join('\n');
+
+    document.body.appendChild(overlay);
+    recalcularEditor();
+}
+
+function buildCriteriosTable(criterios, esc) {
+    if (criterios.length === 0) return '<p style="padding:1rem;color:#888;font-style:italic;">Nenhum criterio.</p>';
+    var h = '<table class="criterios-table"><thead><tr><th style="width:3.5rem;">ID</th><th>Criterio</th><th style="width:4rem;">Status</th><th>Detalhe</th><th style="width:8rem;">Avaliacao Manual</th></tr></thead><tbody>';
+    criterios.forEach(function(c) {
+        var isNaoVerif = c.detalhe === 'Nao verificado' || !c.verificado;
+        h += '<tr class="'+(isNaoVerif?'criterio-naoverif':'')+'">' +
+            '<td style="font-family:monospace;">'+esc(c.id)+'</td>' +
+            '<td>'+esc(c.nome)+'</td>' +
+            '<td style="text-align:center;"><span class="status-display" data-criterio-id="'+esc(c.id)+'" style="color:'+(isNaoVerif?'#aaa':'#2e7d32')+';font-weight:700;">'+(isNaoVerif?'O Nao verificado':'V Atendido')+'</span></td>' +
+            '<td style="font-size:0.8rem;">'+esc(c.detalhe)+'</td>' +
+            '<td>' +
+            (isNaoVerif ? '<select class="manual-criterio" data-criterio-id="'+esc(c.id)+'" onchange="atualizarStatusCriterio(this)"><option value="">Nao verificado</option><option value="sim">Atendido</option><option value="nao">Nao atendido</option></select>' :
+            '<span style="color:#888;font-size:0.8rem;">Automatico</span>') +
+            '</td></tr>';
+    });
+    h += '</tbody></table>';
+    return h;
+}
+
+function atualizarStatusCriterio(sel) {
+    var id = sel.dataset.criterioId;
+    var el = document.querySelector('.status-display[data-criterio-id="'+id+'"]');
+    if (el) {
+        if (sel.value === 'sim') { el.innerHTML = 'V Atendido (avaliador)'; el.style.color = '#2e7d32'; }
+        else if (sel.value === 'nao') { el.innerHTML = 'X Nao atendido (avaliador)'; el.style.color = '#c62828'; }
+        else { el.innerHTML = 'O Nao verificado'; el.style.color = '#aaa'; }
+    }
+    recalcularEditor();
+}
+
+function recalcularEditor() {
+    if (!_editState) return;
+    var total = 0;
+    document.querySelectorAll('#editor-overlay .prod-checkbox:checked').forEach(function(cb) {
+        var p = _editState.original.producoes[cb.dataset.cat][parseInt(cb.dataset.idx)];
+        total += Number(p.pontos || 0);
+    });
+    var membros = document.querySelectorAll('#editor-overlay .membro-checkbox:checked').length;
+    if (membros === 0) membros = 1;
+    var porMembro = total / membros;
+    var anoEl = document.getElementById('edit-ano');
+    var ano = anoEl ? parseInt(anoEl.value) : 0;
+    var tf = (!ano || isNaN(ano) || ano <= 0) ? (_editState.original.pontuacao.tempoFormacao || 0) : new Date().getFullYear() - ano;
+    var minimo = getPontuacaoMinima(tf);
+    var faixaLabel = getFaixaGrupo ? getFaixaGrupo(tf) : 'Consolidado';
+    var atingiu = minimo !== null && porMembro >= minimo;
+
+    document.getElementById('pont-total').textContent = total;
+    document.getElementById('pont-membros').textContent = membros;
+    document.getElementById('pont-por-membro').textContent = porMembro.toFixed(1);
+    if (minimo !== null) {
+        document.getElementById('pont-minimo').textContent = minimo + ' pts/membro ('+faixaLabel+')';
+        var el = document.getElementById('pont-resultado');
+        el.textContent = atingiu ? 'CONFORME' : 'NAO CONFORME';
+        el.style.color = atingiu ? '#2e7d32' : '#c62828';
+    }
+    document.getElementById('count-membros').textContent = membros;
+
+    // Update criterio status display for IFBA scoring
+    var ids = ['IFBA-08','IFBA-09','IFBA-10'];
+    for (var i = 0; i < ids.length; i++) {
+        var el = document.querySelector('#editor-overlay .status-display[data-criterio-id="'+ids[i]+'"]');
+        if (el) {
+            var txt = (atingiu ? 'V' : 'X') + ' ' + porMembro.toFixed(1) + ' pts/membro ' + (atingiu ? '>=' : '<') + ' ' + (minimo || 0);
+            el.innerHTML = txt;
+            el.style.color = atingiu ? '#2e7d32' : '#c62828';
+            break;
+        }
+    }
+}
+
+function coletarEdicoes() {
+    var e = {
+        dadosGrupo: {
+            nome: document.getElementById('edit-nome').value,
+            campus: document.getElementById('edit-campus').value,
+            area: document.getElementById('edit-area').value,
+            anoCriacao: parseInt(document.getElementById('edit-ano').value) || ''
+        },
+        membrosAtivos: [],
+        producoesAtivas: {},
+        criteriosOverride: {},
+        declaracao: {
+            checked: document.getElementById('edit-declaracao').checked,
+            observacoes: document.getElementById('edit-observacoes').value
+        }
+    };
+    document.querySelectorAll('#editor-overlay .membro-checkbox').forEach(function(cb) {
+        e.membrosAtivos.push(cb.checked);
+    });
+    document.querySelectorAll('#editor-overlay .prod-categoria').forEach(function(div) {
+        var cat = div.dataset.cat;
+        e.producoesAtivas[cat] = [];
+        div.querySelectorAll('.prod-checkbox').forEach(function(cb) {
+            e.producoesAtivas[cat].push(cb.checked);
+        });
+    });
+    document.querySelectorAll('#editor-overlay .manual-criterio').forEach(function(sel) {
+        if (sel.value) e.criteriosOverride[sel.dataset.criterioId] = sel.value;
+    });
+    return e;
+}
+
+function gerarPDFComEdicao() {
+    var declaracaoCheck = document.getElementById('edit-declaracao');
+    if (!declaracaoCheck || !declaracaoCheck.checked) {
+        alert('Marque a declaração de veracidade antes de gerar o relatório.');
+        return;
+    }
+    var edits = coletarEdicoes();
+    gerarRelatorio(edits);
+    fecharEditor();
+}
+
+function fecharEditor() {
+    var el = document.getElementById('editor-overlay');
+    if (el) el.remove();
+    _editState = null;
+}

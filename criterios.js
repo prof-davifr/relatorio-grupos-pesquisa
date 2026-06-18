@@ -197,7 +197,7 @@ const CRITERIOS_IFBA_PONTUACAO = [
 ];
 
 const CRITERIOS_LIDER = [
-    { id: "IFBA-11", nome: "Eventos do líder (últimos 2 anos)", regra: (ctx) => (ctx.liderEventos2Anos || 0) >= 2, obrigatorio: true, ref: "Art. 4, §7-a" },
+    { id: "IFBA-11", nome: "Eventos do líder (últimos 2 anos)", regra: (ctx) => (ctx.liderEventos2Anos || 0) >= 2, obrigatorio: false, ref: "Art. 4, §7-a" },
     { id: "IFBA-12", nome: "Publicação do líder (últimos 4 anos)", regra: (ctx) => (ctx.liderPublicacoes4Anos || 0) >= 1, obrigatorio: true, ref: "Art. 4, §7-b" }
 ];
 
@@ -776,14 +776,25 @@ class ValidadorGrupo {
             parecer = "CERTIFICADO";
         }
 
+        const membrosList = (this.grupo.membrosMap && this.grupo.membrosMap.length > 0)
+            ? this.grupo.membrosMap
+            : (this.grupo.PesquisadoresNomes || this.grupo.pesquisadoresNomes || '')
+                .split(';')
+                .map(n => ({ nome: n.trim(), siape: null }))
+                .filter(m => m.nome);
+
         return {
             grupo: {
                 nome: this.grupo.Nome || this.grupo.nome || this.grupo.Area || this.grupo.area || "Não informado",
                 area: this.grupo.Area || this.grupo.area || "Não informada",
                 unidade: this.grupo.Unidade || this.grupo.unidade || "Não informada",
                 situacao: this.grupo.Situacao || this.grupo.situacao || "Não informada",
-                anoCriacao: parseInt(this.grupo.AnoFormacao || this.grupo.anoCriacao || this.grupo.AnoCriacao || 0)
+                anoCriacao: parseInt(this.grupo.AnoFormacao || this.grupo.anoCriacao || this.grupo.AnoCriacao || 0),
+                LiderId: this.grupo.LiderId || null,
+                estudantes: parseInt(this.grupo.Estudantes || 0)
             },
+            membros: membrosList,
+            producoes: pontuacao.producoesPorCategoria,
             criterios,
             pontuacao: {
                 total: pontuacao.totalPontos,

@@ -144,3 +144,107 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
 @media (max-width: 540px) {
     .col-mobile-hidden { display: none; }
 }
+
+/* ── Interactive Editor Overlay ──────────────────────────────────────── */
+#editor-overlay {
+    position: fixed; inset: 0; z-index: 5000;
+    background: rgba(0,0,0,0.5);
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 1rem; overflow-y: auto;
+}
+.editor-modal {
+    background: var(--card-bg, #fff);
+    border-radius: 12px;
+    max-width: 960px; width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    display: flex; flex-direction: column;
+    max-height: calc(100vh - 2rem);
+    animation: editor-fadein 0.2s ease;
+}
+@keyframes editor-fadein { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.editor-modal-header {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 2px solid var(--accent, #32a041);
+    background: #f9f9f9;
+    border-radius: 12px 12px 0 0;
+    flex-shrink: 0;
+}
+.editor-title { flex: 1; font-weight: 700; font-size: 1rem; color: var(--accent, #32a041); }
+.editor-status { font-size: 0.8rem; color: #888; }
+.editor-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #888; padding: 0 0.25rem; }
+.editor-close:hover { color: #333; }
+.editor-body {
+    padding: 1rem 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+}
+.editor-footer {
+    display: flex; justify-content: flex-end; gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    border-top: 1px solid var(--border, #e0e0e0);
+    background: #f9f9f9;
+    border-radius: 0 0 12px 12px;
+    flex-shrink: 0;
+}
+.editor-footer .btn-primario {
+    background: var(--accent, #32a041); color: #fff;
+    border: none; padding: 0.5rem 1.5rem;
+    border-radius: 6px; font-weight: 600; font-size: 0.9rem;
+    cursor: pointer; transition: background 0.15s;
+}
+.editor-footer .btn-primario:hover { background: var(--accent-hover, #2a8a36); }
+.editor-footer .btn-secundario {
+    background: #f5f5f5; color: #333;
+    border: 1px solid var(--border, #e0e0e0);
+    padding: 0.5rem 1.5rem;
+    border-radius: 6px; font-weight: 600; font-size: 0.9rem;
+    cursor: pointer; transition: background 0.15s;
+}
+.editor-footer .btn-secundario:hover { background: #e8e8e8; }
+
+/* Editor sections (same styles as interactive page) */
+#editor-overlay { --accent: #32a041; --accent-hover: #2a8a36; --border: #e0e0e0; --card: #fff; --text: #333; --bg: #f8f9fa; }
+#editor-overlay body { font-family: system-ui, sans-serif; }
+#editor-overlay .edit-section { background: var(--card); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1.25rem; overflow: hidden; }
+#editor-overlay .edit-section-title { background: #f5f5f5; padding: 0.75rem 1rem; font-size: 1rem; color: var(--accent); border-bottom: 1px solid var(--border); }
+#editor-overlay .edit-grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 0.75rem; padding: 1rem; }
+#editor-overlay .edit-field { display: flex; flex-direction: column; gap: 0.25rem; }
+#editor-overlay .edit-field label { font-size: 0.75rem; font-weight: 600; color: #666; text-transform: uppercase; }
+#editor-overlay .edit-field input, #editor-overlay .edit-field textarea { padding: 0.45rem 0.65rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; font-family: inherit; background: var(--card); color: var(--text); }
+#editor-overlay .edit-field input:focus, #editor-overlay .edit-field textarea:focus { border-color: var(--accent); outline: none; }
+#editor-overlay .membros-list { padding: 0.5rem 1rem 0.75rem; display: flex; flex-direction: column; gap: 0.35rem; }
+#editor-overlay .membro-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.5rem; border-radius: 6px; cursor: pointer; }
+#editor-overlay .membro-item:hover { background: #f0f7f0; }
+#editor-overlay .membro-item--lider { border-left: 3px solid var(--accent); }
+#editor-overlay .membro-item input[type="checkbox"] { width: 1.1rem; height: 1.1rem; cursor: pointer; }
+#editor-overlay .membro-lider { color: var(--accent); font-weight: 600; }
+#editor-overlay .membro-siape { color: #888; font-size: 0.8rem; }
+#editor-overlay .edit-membro-count { padding: 0 1rem 0.75rem; font-size: 0.85rem; color: #555; }
+#editor-overlay .prod-categoria { padding: 0.5rem 1rem 1rem; }
+#editor-overlay .prod-cat-title { font-size: 0.9rem; margin-bottom: 0.5rem; color: #444; }
+#editor-overlay .prod-cat-title .prod-cat-pts { font-weight: 700; color: var(--accent); }
+#editor-overlay .prod-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+#editor-overlay .prod-table th { background: #f5f5f5; font-weight: 600; font-size: 0.72rem; text-transform: uppercase; color: #666; padding: 0.4rem 0.5rem; text-align: left; border-bottom: 1px solid var(--border); }
+#editor-overlay .prod-table td { padding: 0.35rem 0.5rem; border-bottom: 1px solid #eee; vertical-align: middle; }
+#editor-overlay .prod-table .col-ano { width: 3.5rem; text-align: center; }
+#editor-overlay .prod-table .col-itemid { width: 3rem; text-align: center; font-family: monospace; font-size: 0.75rem; }
+#editor-overlay .prod-table .col-pts { width: 3rem; text-align: right; font-weight: 600; }
+#editor-overlay .prod-table .col-estrato { width: 4rem; text-align: center; }
+#editor-overlay .prod-table .col-incluir { width: 3rem; text-align: center; }
+#editor-overlay .prod-table .prod-checkbox { width: 1rem; height: 1rem; cursor: pointer; }
+#editor-overlay .prod-row.prod-row--excluida { opacity: 0.4; }
+#editor-overlay .prod-row.prod-row--excluida td { text-decoration: line-through; }
+#editor-overlay .pontuacao-sumario { padding: 1rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 0.75rem; }
+#editor-overlay .pont-item { background: #f9f9f9; border-radius: 6px; padding: 0.6rem 0.75rem; text-align: center; }
+#editor-overlay .pont-label { display: block; font-size: 0.7rem; color: #888; text-transform: uppercase; margin-bottom: 0.25rem; }
+#editor-overlay .pont-valor { display: block; font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+#editor-overlay .criterios-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+#editor-overlay .criterios-table th { background: #f5f5f5; font-weight: 600; font-size: 0.72rem; text-transform: uppercase; color: #666; padding: 0.5rem; text-align: left; border-bottom: 1px solid var(--border); }
+#editor-overlay .criterios-table td { padding: 0.45rem 0.5rem; border-bottom: 1px solid #eee; vertical-align: middle; }
+#editor-overlay .criterios-table tr.criterio-naoverif { background: #fffef5; }
+#editor-overlay .criterios-table select { padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 4px; font-size: 0.82rem; font-family: inherit; background: var(--card); cursor: pointer; }
+#editor-overlay .criterios-table select:focus { border-color: var(--accent); outline: none; }
+@media (max-width: 700px) {
+    #editor-overlay .edit-grid-2 { grid-template-columns: 1fr; }
+}
