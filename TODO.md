@@ -14,6 +14,18 @@
 - [x] **Ranking de Pesquisadores** — aba própria com pontuação individual (mesma regra do validador, dedup por categoria), Top 10, composição por categoria, tabela ordenável/buscável (3.836 pesquisadores), badge de líder, recorte temporal ativo.
 - [x] **Dashboard gerencial (foco produção por grupo)** — botão “📊 Dashboard” ao lado de “Relatório Pré-preenchido”. Removeu-se consolidação nível IFBA (é do dashboard-prpgi). **Filtro temporal ativo** (Todo / 4 anos / 2 anos / custom) recorta o ranking de pontuação. Abas: Ranking de Grupos (breakdown por categoria), Onde Pontuam (composição + stacked top 15 + top 10 por categoria), Campus & Área, Distribuição. Pontuação dos 197 grupos via validador oficial com cache de fatias (0.2s). E2E no Pages: recorte 711.354 → 27.163 pts, ranking muda, 0 erros JS.
 
+## ✅ Auditoria concluída (ago/2025)
+
+- [x] **XSS corrigido** — escapeHtml em todos os pontos de renderização; testado com payload real (executou como texto, 0 HTML cru).
+- [x] **Excluídos fora do ranking** — grupos 'Excluído' não competem no Top 10/risco; badge + linha atenuada na tabela.
+- [x] **Duplicatas consolidadas** — `scripts/limpar-dados.js` (4.865 registros; mantido o de maior pontuação); inovação 935→765; soma pontos 711.354→711.657 (corrigida).
+- [x] **Unidades normalizadas** — 'Salvador' unificado (94 grupos); `unidadeCanonica` no dashboard.
+- [x] **Aviso de ano parcial** no período (2026 em curso).
+- [x] **Badge 'sem líder'** (14 grupos sem LiderId).
+- [x] **Sort Orient. corrigido** (concluídas+andamento).
+- [x] **Chart.js local** (vendor/) — fim da dependência de CDN.
+- [x] **currentYear ancorado em meta.maxYear** (não depende do relógio).
+
 ## 🔄 Em andamento
 
 - [ ] **Compatibilidade de formato**: `data-groups.json` novo não tem `producoes.bancas/bolsas/projetos/captacao/premios` — o validador tolera (usa `|| []`), mas os indicadores aparecem zero e um toast avisa. Decidir: adicionar essas abas no build do dashboard OU remover os indicadores do relatório.
