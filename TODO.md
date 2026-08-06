@@ -9,6 +9,7 @@
 - [x] **Script de sync** — `scripts/sync-data.sh` copia os dados do dashboard local e prepara o commit.
 - [x] **Fix do fetch relativo** — `${BASE}/data.json` com `BASE=''` gerava `/data.json` (raiz do domínio) e quebrava no subpath do Pages; agora `BASE='.'` + `cache: 'no-cache'`.
 - [x] **Teste E2E no Pages** — playwright (headless) validou: sem erro de carregamento, tabela com 150+ grupos, 0 erros JS em `https://prof-davifr.github.io/relatorio-grupos-pesquisa/`.
+- [x] **Dashboard gerencial** — botão “📊 Dashboard” ao lado de “Relatório Pré-preenchido”, 5 abas (Visão Geral, Produção, Inovação, Grupos, Orientações), 19 KPIs, 13 gráficos Chart.js, tabela ordenável/filtrável e rankings Top 10 / risco. Pontuação dos 197 grupos via validador oficial otimizado (índice por Servidor): 13.2s → 0.19s, resultados idênticos. E2E validado no Pages (13 canvases, 197 linhas, 0 erros JS).
 
 ## 🔄 Em andamento
 
@@ -16,6 +17,6 @@
 
 ## ⏳ Backlog
 
-
+- [ ] **Teste visual humano** — conferir se as cores/formatos dos gráficos agradam; ajustar títulos de eixo e legendas se preciso.
 - [ ] **Verificar peso do repo** — 89MB de dados versionados incham o git; avaliar Git LFS ou build no CI (GH Actions regenera os dados no push) se o repo crescer muito.
 - [ ] **LGPD / acesso restrito** (quando for relevante) — os dados contêm PII (SIAPE, nomes). Opção futura: login com conta `@ifba.edu.br` via Google OAuth.

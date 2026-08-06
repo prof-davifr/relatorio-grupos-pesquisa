@@ -8,6 +8,7 @@ Aplicacao web estatica para validacao e geracao de relatorios PDF dos grupos de 
 - Validacao de grupos conforme criterios pre-definidos (producoes, projetos, membros, grupos)
 - Pontuacao por categorias (projetos, producao bibliografica, producao tecnica, orientacoes)
 - Visualizacao por campus com totais agregados e graficos
+- **Dashboard gerencial** (aba "Dashboard") com KPIs, graficos e tabela de todos os grupos
 - Geracao de relatorio PDF individual por grupo
 - Filtros por status, campus, periodo e busca textual
 - Exibicao de especificacoes detalhadas dos criterios de validacao
@@ -27,6 +28,7 @@ Aplicacao web estatica para validacao e geracao de relatorios PDF dos grupos de 
 ```
 ├── index.html              # Interface principal
 ├── script.js               # Logica UI, filtros e geracao de PDF
+├── dashboard.js             # Dashboard gerencial (KPIs, graficos, ranking)
 ├── criterios.js            # Motor de validacao e pontuacao (853 linhas)
 ├── style.css               # Estilos da aplicacao
 ├── specs-validacao.html    # Pagina com especificacoes dos criterios
