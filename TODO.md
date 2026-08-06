@@ -9,7 +9,7 @@
 - [x] **Script de sync** — `scripts/sync-data.sh` copia os dados do dashboard local e prepara o commit.
 - [x] **Fix do fetch relativo** — `${BASE}/data.json` com `BASE=''` gerava `/data.json` (raiz do domínio) e quebrava no subpath do Pages; agora `BASE='.'` + `cache: 'no-cache'`.
 - [x] **Teste E2E no Pages** — playwright (headless) validou: sem erro de carregamento, tabela com 150+ grupos, 0 erros JS em `https://prof-davifr.github.io/relatorio-grupos-pesquisa/`.
-- [x] **Dashboard gerencial** — botão “📊 Dashboard” ao lado de “Relatório Pré-preenchido”, 5 abas (Visão Geral, Produção, Inovação, Grupos, Orientações), 19 KPIs, 13 gráficos Chart.js, tabela ordenável/filtrável e rankings Top 10 / risco. Pontuação dos 197 grupos via validador oficial otimizado (índice por Servidor): 13.2s → 0.19s, resultados idênticos. E2E validado no Pages (13 canvases, 197 linhas, 0 erros JS).
+- [x] **Dashboard gerencial (foco produção por grupo)** — botão “📊 Dashboard” ao lado de “Relatório Pré-preenchido”. Removeu-se consolidação nível IFBA (é do dashboard-prpgi). **Filtro temporal ativo** (Todo / 4 anos / 2 anos / custom) recorta o ranking de pontuação. Abas: Ranking de Grupos (breakdown por categoria), Onde Pontuam (composição + stacked top 15 + top 10 por categoria), Campus & Área, Distribuição. Pontuação dos 197 grupos via validador oficial com cache de fatias (0.2s). E2E no Pages: recorte 711.354 → 27.163 pts, ranking muda, 0 erros JS.
 
 ## 🔄 Em andamento
 
