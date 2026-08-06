@@ -75,9 +75,9 @@ function showToast(message, durationMs = 6000, type = 'info') {
 
 async function carregarDados() {
     try {
-        // Check if data files exist locally first (for dev)
-        const useLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-        const BASE = useLocal ? '' : 'https://prof-davifr.github.io/dashboard-prpgi';
+        // Dados servidos ao lado do index.html (dev local E GitHub Pages deste repo).
+        // Não depende mais do Pages do dashboard — este projeto é autocontido.
+        const BASE = '';
         const [respDash, respGroups] = await Promise.all([
             fetch(`${BASE}/data.json`),
             fetch(`${BASE}/data-groups.json`)

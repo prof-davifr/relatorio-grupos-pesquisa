@@ -12,10 +12,8 @@ node_modules/
 # Local overrides
 .env
 
-# Dev local — colocar data.json e data-groups.json aqui para desenvolvimento local
-# Esses arquivos são gerados pelo build.js do repo dashboard-PRPGI
-data.json
-data-groups.json
+# Dados versionados de propósito: este repo serve os próprios dados no Pages
+# (gerados por ../dashboard-prpgi/build.js e sincronizados via scripts/sync-data.sh)
 
 # Arquivos institucionais
 AGENTS.md
