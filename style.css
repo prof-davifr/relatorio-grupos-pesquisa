@@ -278,16 +278,16 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
 .chart-card--wide { grid-column: 1 / -1; }
 .chart-card--wide canvas { height: 300px; max-height: 300px; }
 
-.rank-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1.25rem; }
-.rank-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.1rem; box-shadow: var(--shadow); }
+.rank-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.85rem; margin-bottom: 1.25rem; }
+.rank-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.1rem; box-shadow: var(--shadow); min-width: 0; overflow: hidden; }
 .rank-card h3 { font-size: 0.9rem; color: #555; margin-bottom: 0.6rem; }
 .rank-card ol { list-style: none; counter-reset: rank; }
 .rank-card li { display: flex; align-items: baseline; gap: 0.5rem; padding: 0.3rem 0; border-bottom: 1px dashed #eee; font-size: 0.83rem; }
 .rank-card li:last-child { border-bottom: none; }
 .rank-pos { background: var(--accent); color: #fff; border-radius: 50%; width: 20px; height: 20px; font-size: 0.68rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex: none; }
 .rank-pos--warn { background: var(--orange); }
-.rank-nome { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rank-valor { color: #888; font-size: 0.75rem; white-space: nowrap; }
+.rank-nome { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rank-valor { color: #888; font-size: 0.75rem; white-space: nowrap; flex-shrink: 0; margin-left: auto; }
 
 .dash-filters { margin-bottom: 0.85rem; }
 .dash-filters input, .dash-filters select { padding: 0.45rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem; background: var(--card-bg); color: var(--text); }
@@ -319,3 +319,7 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
 
 .rank-period { font-weight: 400; font-size: 0.72rem; color: #999; }
 .td-total { font-weight: 700; color: var(--accent); }
+
+/* ─── Notas explicativas dos gráficos ─────────────────────────────────────── */
+.chart-note { font-size: 0.75rem; color: #777; background: #fafafa; border-left: 3px solid var(--accent); padding: 0.45rem 0.65rem; border-radius: 0 6px 6px 0; margin-bottom: 0.7rem; line-height: 1.45; }
+.rank-card .chart-note { margin-bottom: 0.5rem; }

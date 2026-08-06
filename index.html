@@ -140,8 +140,8 @@
         <!-- ── Ranking de Grupos ── -->
         <section id="dash-ranking" class="dash-panel is-active" role="tabpanel">
             <div class="rank-grid">
-                <div class="rank-card"><h3>Top 10 por Pontuação <span class="rank-period"></span></h3><ol id="rank-top"></ol></div>
-                <div class="rank-card"><h3>Menor Pts/Membro (risco) <span class="rank-period"></span></h3><ol id="rank-risco"></ol></div>
+                <div class="rank-card"><h3>Top 10 por Pontuação <span class="rank-period"></span></h3><p class="chart-note">Os 10 grupos com maior pontuação total no período. A pontuação é calculada pela produção dos membros do grupo conforme o Regulamento (CONSEPE).</p><ol id="rank-top"></ol></div>
+                <div class="rank-card"><h3>Menor Pts/Membro (risco) <span class="rank-period"></span></h3><p class="chart-note">Os 10 grupos com menor pontuação por membro — alerta de produção concentrada ou baixa. Confira na tabela abaixo se o grupo ainda atinge o piso mínimo do regulamento.</p><ol id="rank-risco"></ol></div>
             </div>
             <div class="landing-controls dash-filters">
                 <input type="text" id="dash-search" placeholder="Buscar grupo..." aria-label="Buscar grupo no dashboard">
@@ -151,6 +151,7 @@
                 <span id="dash-group-count" class="group-count" aria-live="polite"></span>
             </div>
             <div class="table-wrapper">
+                <p class="chart-note">Pontuação por grupo no período selecionado. "Total" é a soma das categorias (Biblio, Técnica, Eventos, Orient., Inov.). "Mínimo" indica se o grupo alcança o piso de pontos por membro exigido pelo regulamento (SIM/NÃO). Clique nas colunas para ordenar.</p>
                 <table id="dash-table" aria-label="Tabela gerencial dos grupos por período">
                     <thead>
                         <tr>
@@ -178,10 +179,11 @@
         <section id="dash-onde" class="dash-panel" role="tabpanel">
             <div class="kpi-grid" id="kpi-onde"></div>
             <div class="chart-grid">
-                <div class="chart-card"><h3>Composição dos Pontos (todos os grupos) <span class="rank-period"></span></h3><canvas id="chart-composicao-pontos"></canvas></div>
-                <div class="chart-card chart-card--wide"><h3>Top 15 Grupos — De Onde Vem a Pontuação (empilhado por categoria)</h3><canvas id="chart-stacked-grupos"></canvas></div>
+                <div class="chart-card"><h3>Composição dos Pontos (todos os grupos) <span class="rank-period"></span></h3><p class="chart-note">Quanto da pontuação total dos grupos vem de cada categoria no período. Se uma fatia domina, a produção do IFBA é forte naquela frente (ex.: bibliográfica ou eventos).</p><canvas id="chart-composicao-pontos"></canvas></div>
+                <div class="chart-card chart-card--wide"><h3>Top 15 Grupos — De Onde Vem a Pontuação (empilhado por categoria)</h3><p class="chart-note">As 15 maiores pontuações do período, com as cores mostrando de onde vêm os pontos de cada grupo. Barra dominada por uma cor = grupo que concentra a pontuação naquela categoria.</p><canvas id="chart-stacked-grupos"></canvas></div>
                 <div class="chart-card chart-card--wide">
                     <h3>Top 10 Grupos por Categoria: <select id="dash-cat-select" aria-label="Categoria para o top 10"></select></h3>
+                    <p class="chart-note">Os 10 grupos que mais pontuam na categoria escolhida. Use o seletor para identificar especialistas: quem lidera em inovação, em orientações, em eventos etc.</p>
                     <canvas id="chart-top-categoria"></canvas>
                 </div>
             </div>
@@ -190,11 +192,12 @@
         <!-- ── Campus & Área ── -->
         <section id="dash-campus" class="dash-panel" role="tabpanel">
             <div class="chart-grid">
-                <div class="chart-card"><h3>Pontos por Campus <span class="rank-period"></span></h3><canvas id="chart-campus-pontos"></canvas></div>
-                <div class="chart-card"><h3>Pontos Médios por Grupo — por Campus</h3><canvas id="chart-campus-media"></canvas></div>
-                <div class="chart-card chart-card--wide"><h3>Pontos por Área do Conhecimento</h3><canvas id="chart-area-pontos"></canvas></div>
+                <div class="chart-card"><h3>Pontos por Campus <span class="rank-period"></span></h3><p class="chart-note">Soma das pontuações dos grupos de cada campus no período. Campi com mais grupos tendem a somar mais — compare com o gráfico de média ao lado.</p><canvas id="chart-campus-pontos"></canvas></div>
+                <div class="chart-card"><h3>Pontos Médios por Grupo — por Campus</h3><p class="chart-note">Pontuação média por grupo em cada campus. Nivela o tamanho: mostra a intensidade média da produção, independentemente do número de grupos.</p><canvas id="chart-campus-media"></canvas></div>
+                <div class="chart-card chart-card--wide"><h3>Pontos por Área do Conhecimento</h3><p class="chart-note">Soma de pontos por grande área. Mostra em quais áreas do conhecimento a pesquisa do IFBA concentra produção no período.</p><canvas id="chart-area-pontos"></canvas></div>
             </div>
             <div class="table-wrapper" style="margin-top:1rem;">
+                <p class="chart-note">Resumo por campus: número de grupos, pontos totais, média por grupo e o grupo com maior pontuação no período.</p>
                 <table id="campus-table" aria-label="Resumo por campus">
                     <thead><tr><th>Campus</th><th>Grupos</th><th>Pontos totais</th><th>Média por grupo</th><th>Maior grupo</th></tr></thead>
                     <tbody id="campus-tbody"></tbody>
@@ -206,9 +209,9 @@
         <section id="dash-distribuicao" class="dash-panel" role="tabpanel">
             <div class="kpi-grid" id="kpi-dist"></div>
             <div class="chart-grid">
-                <div class="chart-card"><h3>Grupos por Faixa de Pontuação <span class="rank-period"></span></h3><canvas id="chart-hist-pontos"></canvas></div>
-                <div class="chart-card"><h3>Grupos por Faixa de Pts/Membro</h3><canvas id="chart-hist-pmembro"></canvas></div>
-                <div class="chart-card chart-card--wide"><h3>Concentração: % dos pontos acumulados pelos grupos ordenados</h3><canvas id="chart-concentracao"></canvas></div>
+                <div class="chart-card"><h3>Grupos por Faixa de Pontuação <span class="rank-period"></span></h3><p class="chart-note">Quantos grupos caem em cada faixa de pontuação. Cauda longa à direita = poucos grupos muito produtivos e muitos com pontuação baixa.</p><canvas id="chart-hist-pontos"></canvas></div>
+                <div class="chart-card"><h3>Grupos por Faixa de Pts/Membro</h3><p class="chart-note">Distribuição da pontuação por membro. Grupos à esquerda (baixo pts/membro) merecem atenção: grupos grandes com pouca produção por pessoa.</p><canvas id="chart-hist-pmembro"></canvas></div>
+                <div class="chart-card chart-card--wide"><h3>Concentração: % dos pontos acumulados pelos grupos ordenados</h3><p class="chart-note">A linha azul mostra o % acumulado dos pontos dos grupos mais produtivos (da maior para a menor pontuação). Quanto mais distante da linha cinza (igualdade perfeita), mais concentrada a produção nos poucos grupos de topo.</p><canvas id="chart-concentracao"></canvas></div>
             </div>
         </section>
     </div>

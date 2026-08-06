@@ -35,6 +35,7 @@
     // ─── util ──────────────────────────────────────────────────────────────────
     const fmt = (n) => (n ?? 0).toLocaleString('pt-BR');
     const fmt1 = (n) => (n ?? 0).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+    const truncar = (s, n = 34) => (s || '').length > n ? (s.slice(0, n - 1) + '…') : s;
     const $ = (id) => document.getElementById(id);
 
     // ─── índice e fatias (independem do período) ──────────────────────────────
@@ -232,12 +233,12 @@
         const risco = [...rows].sort((a, b) => a.porMembro - b.porMembro).slice(0, 10);
 
         $('rank-top').innerHTML = top.map((r, i) =>
-            `<li><span class="rank-pos">${i + 1}</span> <span class="rank-nome" title="${r.nome}">${r.nome}</span>` +
+            `<li><span class="rank-pos">${i + 1}</span> <span class="rank-nome" title="${r.nome}">${truncar(r.nome)}</span>` +
             `<span class="rank-valor"><b>${fmt(r.pontos)}</b> pts · ${r.unidade.replace('IFBA - Campus ', '')}</span></li>`
         ).join('');
 
         $('rank-risco').innerHTML = risco.map((r, i) =>
-            `<li><span class="rank-pos rank-pos--warn">${i + 1}</span> <span class="rank-nome" title="${r.nome}">${r.nome}</span>` +
+            `<li><span class="rank-pos rank-pos--warn">${i + 1}</span> <span class="rank-nome" title="${r.nome}">${truncar(r.nome)}</span>` +
             `<span class="rank-valor">${fmt1(r.porMembro)} pts/membro · ${SITUACAO_SHORT[r.situacao] || r.situacao}</span></li>`
         ).join('');
     }
