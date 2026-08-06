@@ -60,6 +60,45 @@ git add -A && git commit -m "sync: dados do dashboard" && git push
 
 Em **desenvolvimento local**, os dados ja estao na raiz (versionados), basta `npm start`.
 
+## Atualizando os dados
+
+O fluxo completo (fonte → relatório → Pages):
+
+```
+┌─────────────────┐   ┌──────────────────┐   ┌───────────────────────┐   ┌──────────────┐
+│  Scrapers       │   │ dashboard-prpgi   │   │ relatorio-grupos-     │   │ GitHub Pages │
+│  (SUAP/DGP)     │──▶│ npm run build     │──▶│ pesquisa              │──▶│ (público)    │
+│  → XLSX/CSV     │   │ → data.json       │   │ scripts/sync-data.sh  │   │              │
+│  brutos         │   │   data-groups.json│   │ + validação + commit  │   │              │
+└─────────────────┘   └──────────────────┘   └───────────────────────┘   └──────────────┘
+```
+
+### Passo a passo
+
+1. **Coletar dados brutos (manual — precisa de credenciais):**
+   - `scraper-SUAPCNPQ` (produção): login SUAP → baixa XLSX para `dashboard-prpgi/dados/scraper-SUAPCNPQ/`
+   - `scraper-DGP` (grupos): coletor web → CSV para `dashboard-prpgi/dados/scraper-DGP/`
+
+2. **Automatizar o resto** (build + sync + validação):
+   ```bash
+   scripts/atualizar-dados.sh --build
+   ```
+   (sem `--build`, usa os `data.json` já gerados no dashboard)
+
+3. **Revisar e publicar:**
+   ```bash
+   git add -A && git commit -m "sync: dados atualizados" && git push
+   ```
+   O Pages publica sozinho em 1–3 min. Atenção ao limite de **10 builds/hora**
+   do GitHub Pages — se fizer vários pushes seguidos, o deploy pode atrasar.
+
+### O que `sync-data.sh` faz com os dados do dashboard
+
+1. Copia `data.json` + `data-groups.json`
+2. `gerar-mapa-nomes.js` — extrai pares nome↔ID dos XLSX brutos (resolve servidores que o build não nomeou)
+3. `limpar-dados.js` — consolida duplicatas (dedup por **título real**/nº de registro,
+   mantendo a de maior pontuação) e normaliza nomes de unidades
+
 ## Desenvolvimento
 
 ### Pre-requisitos
