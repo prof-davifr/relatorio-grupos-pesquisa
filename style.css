@@ -307,3 +307,17 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
     .header-content { justify-content: center; }
     .view-switch { width: 100%; justify-content: center; }
 }
+
+/* ─── Toolbar de período do dashboard ─────────────────────────────────────── */
+.dash-toolbar { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 0.7rem 1rem; margin-bottom: 1.25rem; box-shadow: var(--shadow); }
+.dash-toolbar-label { font-size: 0.8rem; font-weight: 600; color: #555; }
+.dash-period-btns { display: flex; gap: 0.3rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.2rem; }
+.dash-period-btn { border: none; background: transparent; color: #555; padding: 0.35rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+.dash-period-btn:hover { color: var(--accent); }
+.dash-period-btn.is-active { background: var(--accent); color: #fff; }
+.dash-custom-period { display: flex; align-items: center; gap: 0.35rem; }
+.dash-custom-period input { width: 76px; padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.82rem; background: var(--card-bg); color: var(--text); }
+.dash-period-info { font-size: 0.78rem; color: #888; margin-left: auto; }
+
+.rank-period { font-weight: 400; font-size: 0.72rem; color: #999; }
+.td-total { font-weight: 700; color: var(--accent); }

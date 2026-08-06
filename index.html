@@ -113,50 +113,36 @@
 
 
     <div id="dashboard-view" class="dashboard-view is-hidden">
-        <div class="dashboard-tabs" role="tablist" aria-label="Seções do dashboard">
-            <button class="dash-tab is-active" data-dash-tab="visao-geral" role="tab">Visão Geral</button>
-            <button class="dash-tab" data-dash-tab="producao" role="tab">Produção</button>
-            <button class="dash-tab" data-dash-tab="inovacao" role="tab">Inovação</button>
-            <button class="dash-tab" data-dash-tab="grupos" role="tab">Grupos</button>
-            <button class="dash-tab" data-dash-tab="orientacoes" role="tab">Orientações</button>
+        <div class="dash-toolbar">
+            <span class="dash-toolbar-label">Período de pontuação:</span>
+            <div class="dash-period-btns" role="group" aria-label="Período de pontuação">
+                <button class="dash-period-btn is-active" data-dash-period="all" type="button">Todo</button>
+                <button class="dash-period-btn" data-dash-period="4" type="button">Últimos 4 anos</button>
+                <button class="dash-period-btn" data-dash-period="2" type="button">Últimos 2 anos</button>
+            </div>
+            <div class="dash-custom-period">
+                <label for="dash-year-start" class="sr-only">Ano inicial</label>
+                <input type="number" id="dash-year-start" placeholder="De" inputmode="numeric" aria-label="Ano inicial do período">
+                <span aria-hidden="true">–</span>
+                <label for="dash-year-end" class="sr-only">Ano final</label>
+                <input type="number" id="dash-year-end" placeholder="Até" inputmode="numeric" aria-label="Ano final do período">
+                <button id="dash-apply-period" class="btn-apply" type="button">Aplicar</button>
+            </div>
+            <span id="dash-period-info" class="dash-period-info" aria-live="polite"></span>
         </div>
 
-        <!-- ── Visão Geral ── -->
-        <section id="dash-visao-geral" class="dash-panel is-active" role="tabpanel">
-            <div class="kpi-grid" id="kpi-geral"></div>
-            <div class="chart-grid">
-                <div class="chart-card"><h3>Situação dos Grupos (DGP)</h3><canvas id="chart-situacao"></canvas></div>
-                <div class="chart-card"><h3>Grupos por Campus</h3><canvas id="chart-campus"></canvas></div>
-                <div class="chart-card chart-card--wide"><h3>Evolução da Produção por Ano</h3><canvas id="chart-evolucao"></canvas></div>
-            </div>
-        </section>
+        <div class="dashboard-tabs" role="tablist" aria-label="Seções do dashboard">
+            <button class="dash-tab is-active" data-dash-tab="ranking" role="tab">🏆 Ranking de Grupos</button>
+            <button class="dash-tab" data-dash-tab="onde" role="tab">📈 Onde Pontuam</button>
+            <button class="dash-tab" data-dash-tab="campus" role="tab">🗺 Campus &amp; Área</button>
+            <button class="dash-tab" data-dash-tab="distribuicao" role="tab">⚖ Distribuição</button>
+        </div>
 
-        <!-- ── Produção ── -->
-        <section id="dash-producao" class="dash-panel" role="tabpanel">
-            <div class="kpi-grid" id="kpi-producao"></div>
-            <div class="chart-grid">
-                <div class="chart-card"><h3>Composição da Produção</h3><canvas id="chart-composicao"></canvas></div>
-                <div class="chart-card"><h3>Tipos — Produção Bibliográfica</h3><canvas id="chart-tipos-biblio"></canvas></div>
-                <div class="chart-card"><h3>Qualis — Artigos em Periódicos</h3><canvas id="chart-qualis"></canvas></div>
-                <div class="chart-card"><h3>Tipos — Produções Técnicas</h3><canvas id="chart-tipos-tecnicos"></canvas></div>
-            </div>
-        </section>
-
-        <!-- ── Inovação ── -->
-        <section id="dash-inovacao" class="dash-panel" role="tabpanel">
-            <div class="kpi-grid" id="kpi-inovacao"></div>
-            <div class="chart-grid">
-                <div class="chart-card"><h3>Inovação por Tipo</h3><canvas id="chart-inov-tipo"></canvas></div>
-                <div class="chart-card"><h3>Inovação por Campus</h3><canvas id="chart-inov-campus"></canvas></div>
-                <div class="chart-card chart-card--wide"><h3>Evolução da Inovação por Ano</h3><canvas id="chart-inov-evolucao"></canvas></div>
-            </div>
-        </section>
-
-        <!-- ── Grupos ── -->
-        <section id="dash-grupos" class="dash-panel" role="tabpanel">
+        <!-- ── Ranking de Grupos ── -->
+        <section id="dash-ranking" class="dash-panel is-active" role="tabpanel">
             <div class="rank-grid">
-                <div class="rank-card"><h3>🏆 Top 10 Grupos por Pontuação</h3><ol id="rank-top"></ol></div>
-                <div class="rank-card"><h3>⚠️ Grupos com Menor Pts/Membro (risco)</h3><ol id="rank-risco"></ol></div>
+                <div class="rank-card"><h3>🏆 Top 10 por Pontuação <span class="rank-period"></span></h3><ol id="rank-top"></ol></div>
+                <div class="rank-card"><h3>⚠️ Menor Pts/Membro (risco) <span class="rank-period"></span></h3><ol id="rank-risco"></ol></div>
             </div>
             <div class="landing-controls dash-filters">
                 <input type="text" id="dash-search" placeholder="Buscar grupo..." aria-label="Buscar grupo no dashboard">
@@ -166,7 +152,7 @@
                 <span id="dash-group-count" class="group-count" aria-live="polite"></span>
             </div>
             <div class="table-wrapper">
-                <table id="dash-table" aria-label="Tabela gerencial dos grupos">
+                <table id="dash-table" aria-label="Tabela gerencial dos grupos por período">
                     <thead>
                         <tr>
                             <th data-dash-sort="nome">Grupo</th>
@@ -174,11 +160,14 @@
                             <th data-dash-sort="area">Área</th>
                             <th data-dash-sort="situacao">Situação</th>
                             <th data-dash-sort="membros">Membros</th>
-                            <th data-dash-sort="pontos">Pontos</th>
+                            <th data-dash-sort="pontos" title="Pontuação total no período">Total</th>
+                            <th data-dash-sort="detalhamento.bibliografica" title="Pontos de produção bibliográfica">Biblio</th>
+                            <th data-dash-sort="detalhamento.tecnica" title="Pontos de produções técnicas">Técnica</th>
+                            <th data-dash-sort="detalhamento.eventos" title="Pontos de eventos (ministrante/organização)">Eventos</th>
+                            <th data-dash-sort="detalhamento.orientacoesConcluidas" title="Pontos de orientações concluídas">Orient.</th>
+                            <th data-dash-sort="detalhamento.inovacao" title="Pontos de inovação (patentes, softwares)">Inov.</th>
                             <th data-dash-sort="porMembro">Pts/Membro</th>
-                            <th data-dash-sort="minimo">Mínimo</th>
-                            <th data-dash-sort="atingiu">Atingiu?</th>
-                            <th data-dash-sort="faixa">Faixa</th>
+                            <th data-dash-sort="atingiu">Mínimo</th>
                         </tr>
                     </thead>
                     <tbody id="dash-tbody"></tbody>
@@ -186,13 +175,41 @@
             </div>
         </section>
 
-        <!-- ── Orientações ── -->
-        <section id="dash-orientacoes" class="dash-panel" role="tabpanel">
-            <div class="kpi-grid" id="kpi-orientacoes"></div>
+        <!-- ── Onde Pontuam ── -->
+        <section id="dash-onde" class="dash-panel" role="tabpanel">
+            <div class="kpi-grid" id="kpi-onde"></div>
             <div class="chart-grid">
-                <div class="chart-card"><h3>Orientações Concluídas por Nível</h3><canvas id="chart-orient-concluidas"></canvas></div>
-                <div class="chart-card"><h3>Orientações em Andamento por Nível</h3><canvas id="chart-orient-andamento"></canvas></div>
-                <div class="chart-card chart-card--wide"><h3>Evolução das Orientações Concluídas</h3><canvas id="chart-orient-evolucao"></canvas></div>
+                <div class="chart-card"><h3>Composição dos Pontos (todos os grupos) <span class="rank-period"></span></h3><canvas id="chart-composicao-pontos"></canvas></div>
+                <div class="chart-card chart-card--wide"><h3>Top 15 Grupos — De Onde Vem a Pontuação (empilhado por categoria)</h3><canvas id="chart-stacked-grupos"></canvas></div>
+                <div class="chart-card chart-card--wide">
+                    <h3>Top 10 Grupos por Categoria: <select id="dash-cat-select" aria-label="Categoria para o top 10"></select></h3>
+                    <canvas id="chart-top-categoria"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── Campus & Área ── -->
+        <section id="dash-campus" class="dash-panel" role="tabpanel">
+            <div class="chart-grid">
+                <div class="chart-card"><h3>Pontos por Campus <span class="rank-period"></span></h3><canvas id="chart-campus-pontos"></canvas></div>
+                <div class="chart-card"><h3>Pontos Médios por Grupo — por Campus</h3><canvas id="chart-campus-media"></canvas></div>
+                <div class="chart-card chart-card--wide"><h3>Pontos por Área do Conhecimento</h3><canvas id="chart-area-pontos"></canvas></div>
+            </div>
+            <div class="table-wrapper" style="margin-top:1rem;">
+                <table id="campus-table" aria-label="Resumo por campus">
+                    <thead><tr><th>Campus</th><th>Grupos</th><th>Pontos totais</th><th>Média por grupo</th><th>Maior grupo</th></tr></thead>
+                    <tbody id="campus-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ── Distribuição ── -->
+        <section id="dash-distribuicao" class="dash-panel" role="tabpanel">
+            <div class="kpi-grid" id="kpi-dist"></div>
+            <div class="chart-grid">
+                <div class="chart-card"><h3>Grupos por Faixa de Pontuação <span class="rank-period"></span></h3><canvas id="chart-hist-pontos"></canvas></div>
+                <div class="chart-card"><h3>Grupos por Faixa de Pts/Membro</h3><canvas id="chart-hist-pmembro"></canvas></div>
+                <div class="chart-card chart-card--wide"><h3>Concentração: % dos pontos acumulados pelos grupos ordenados</h3><canvas id="chart-concentracao"></canvas></div>
             </div>
         </section>
     </div>
