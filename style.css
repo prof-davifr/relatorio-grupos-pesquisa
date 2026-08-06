@@ -248,3 +248,62 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
 @media (max-width: 700px) {
     #editor-overlay .edit-grid-2 { grid-template-columns: 1fr; }
 }
+
+/* ─── Dashboard gerencial ─────────────────────────────────────────────────── */
+.view-switch { display: flex; gap: 0.35rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.25rem; }
+.view-btn { border: none; background: transparent; color: #555; padding: 0.45rem 0.9rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background 0.15s, color 0.15s; }
+.view-btn:hover { color: var(--accent); }
+.view-btn.is-active { background: var(--accent); color: #fff; }
+
+.dashboard-view { max-width: 1100px; margin: 0 auto; padding: 1.25rem 1.5rem 3rem; }
+.dashboard-tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+.dash-tab { border: 1px solid var(--border); background: var(--card-bg); color: #555; padding: 0.5rem 1.1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.dash-tab:hover { border-color: var(--accent); color: var(--accent); }
+.dash-tab.is-active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.dash-panel { display: none; }
+.dash-panel.is-active { display: block; }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.85rem; margin-bottom: 1.25rem; }
+.kpi-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.1rem; box-shadow: var(--shadow); }
+.kpi-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: #777; font-weight: 600; }
+.kpi-value { font-size: 1.7rem; font-weight: 700; color: var(--text); margin: 0.2rem 0 0.15rem; }
+.kpi-detail { font-size: 0.75rem; color: #999; }
+.kpi-card--accent { border-top: 3px solid var(--accent); }
+.kpi-card--success { border-top: 3px solid var(--green); }
+.kpi-card--warn { border-top: 3px solid var(--orange); }
+
+.chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.85rem; }
+.chart-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; box-shadow: var(--shadow); }
+.chart-card h3 { font-size: 0.9rem; color: #555; margin-bottom: 0.75rem; font-weight: 600; }
+.chart-card canvas { height: 260px; max-height: 260px; width: 100% !important; }
+.chart-card--wide { grid-column: 1 / -1; }
+.chart-card--wide canvas { height: 300px; max-height: 300px; }
+
+.rank-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1.25rem; }
+.rank-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.1rem; box-shadow: var(--shadow); }
+.rank-card h3 { font-size: 0.9rem; color: #555; margin-bottom: 0.6rem; }
+.rank-card ol { list-style: none; counter-reset: rank; }
+.rank-card li { display: flex; align-items: baseline; gap: 0.5rem; padding: 0.3rem 0; border-bottom: 1px dashed #eee; font-size: 0.83rem; }
+.rank-card li:last-child { border-bottom: none; }
+.rank-pos { background: var(--accent); color: #fff; border-radius: 50%; width: 20px; height: 20px; font-size: 0.68rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.rank-pos--warn { background: var(--orange); }
+.rank-nome { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rank-valor { color: #888; font-size: 0.75rem; white-space: nowrap; }
+
+.dash-filters { margin-bottom: 0.85rem; }
+.dash-filters input, .dash-filters select { padding: 0.45rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem; background: var(--card-bg); color: var(--text); }
+
+#dash-table th { cursor: pointer; user-select: none; }
+#dash-table th:hover { color: var(--accent); }
+.td-nome { font-weight: 600; }
+.td-num { text-align: right; font-variant-numeric: tabular-nums; }
+.badge { display: inline-block; padding: 0.12rem 0.5rem; border-radius: 12px; font-size: 0.7rem; font-weight: 700; }
+.badge--ok { background: var(--green-bg); color: var(--green); }
+.badge--bad { background: var(--red-bg); color: var(--red); }
+
+@media (max-width: 700px) {
+    .rank-grid { grid-template-columns: 1fr; }
+    .header-content { justify-content: center; }
+    .view-switch { width: 100%; justify-content: center; }
+}

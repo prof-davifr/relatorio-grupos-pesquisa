@@ -957,6 +957,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const loading = $('loading');
     if (loading) loading.style.display = 'none';
 
+    // ── Dashboard gerencial ───────────────────────────────────────────────────
+    if (typeof window.initDashboard === 'function') {
+        // roda sem bloquear a UI (o cálculo de 197 grupos leva alguns segundos)
+        setTimeout(() => window.initDashboard(STATE.dados, STATE.groupsData), 0);
+    }
+
     // ── Aviso experimental ─────────────────────────────────────────────────────
     const avisoCiencia = $('aviso-ciencia');
     const avisoOverlay = $('aviso-experimental');
