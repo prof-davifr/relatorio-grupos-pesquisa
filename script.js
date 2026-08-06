@@ -229,14 +229,14 @@ function renderTableRows(grupos) {
         const selectedClass = STATE.selectedGroupIdx === originalIdx ? ' selected' : '';
         const statusClass = normalizeStatusClass(situacao);
 
-        html += `<tr data-idx="${originalIdx}" class="group-row${selectedClass}" tabindex="0" role="button" aria-label="Selecionar grupo ${nome}">
+        html += `<tr data-idx="${originalIdx}" class="group-row${selectedClass}" tabindex="0" role="button" aria-label="Selecionar grupo ${escapeHtml(nome)}">
             <td>${displayIdx + 1}</td>
-            <td class="group-name">${nome}</td>
-            <td class="col-mobile-hidden">${area}</td>
-            <td>${unidade}</td>
-            <td><span class="status-badge status-${statusClass}" title="Situação cadastral no DGP/CNPq">${situacao || 'N/A'}</span></td>
-            <td>${pesquisadores}</td>
-            <td class="col-mobile-hidden">${ano}</td>
+            <td class="group-name">${escapeHtml(nome)}</td>
+            <td class="col-mobile-hidden">${escapeHtml(area)}</td>
+            <td>${escapeHtml(unidade)}</td>
+            <td><span class="status-badge status-${statusClass}" title="Situação cadastral no DGP/CNPq">${escapeHtml(situacao || 'N/A')}</span></td>
+            <td>${escapeHtml(pesquisadores)}</td>
+            <td class="col-mobile-hidden">${escapeHtml(ano)}</td>
         </tr>`;
     });
 

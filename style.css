@@ -352,3 +352,7 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
 @media (max-width: 700px) {
     .pesq-modal { padding: 1rem; }
 }
+
+/* ─── Auditoria: excluídos e líderes ausentes ─────────────────────────────── */
+.row-excluido td { opacity: 0.55; }
+.badge--warn { background: var(--orange-bg); color: var(--orange); }

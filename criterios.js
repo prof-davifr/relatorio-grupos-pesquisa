@@ -352,7 +352,10 @@ class ValidadorGrupo {
         this.dashboardData = dashboardData;
         this.periodoSelecionado = periodoSelecionado;
         this.customPeriod = customPeriod;
-        this.currentYear = new Date().getFullYear();
+        // currentYear é ancorado em meta.maxYear (fim do período dos dados) para
+        // não depender do relógio da máquina; cai para o ano real se o meta faltar.
+        this.currentYear = (this.dashboardData && this.dashboardData.meta && this.dashboardData.meta.maxYear)
+            || new Date().getFullYear();
         this.mappedCampus = this._mapCampus();
     }
 

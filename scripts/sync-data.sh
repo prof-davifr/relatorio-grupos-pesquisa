@@ -22,6 +22,7 @@ cp "$SRC/data.json" "$SRC/data-groups.json" "$DEST/"
 # build.js não captura: IDs de 6 dígitos, servidores fora dos grupos)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 node "$SCRIPT_DIR/gerar-mapa-nomes.js" "$SRC"
+node "$SCRIPT_DIR/limpar-dados.js" "$DEST/data-groups.json"
 
 echo "Dados sincronizados:"
 ls -la "$DEST"/data*.json

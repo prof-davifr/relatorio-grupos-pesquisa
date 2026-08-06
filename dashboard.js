@@ -36,7 +36,17 @@
     const fmt = (n) => (n ?? 0).toLocaleString('pt-BR');
     const fmt1 = (n) => (n ?? 0).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
     const truncar = (s, n = 34) => (s || '').length > n ? (s.slice(0, n - 1) + '…') : s;
+    const h = escapeHtml; // alias curto: SEMPRE escapar dados externos em HTML
     const $ = (id) => document.getElementById(id);
+
+    // Unidades canônicas: consolida variantes do mesmo campus (ex.: "Salvador" =
+    // "IFBA - Campus Salvador"). Polo de Inovação é unidade própria.
+    const UNIDADE_CANONICA = {
+        'Salvador': 'IFBA - Campus Salvador',
+        'IFBA - Campus Salvador': 'IFBA - Campus Salvador'
+    };
+    const unidadeCanonica = (u) => UNIDADE_CANONICA[u] || u || '—';
+    const campusCurto = (u) => unidadeCanonica(u).replace('IFBA - Campus ', '');
 
     // ─── índice e fatias (independem do período) ──────────────────────────────
     function buildIndex(producoes) {
@@ -171,8 +181,9 @@
         if (!el) return;
         const card = document.createElement('div');
         card.className = 'kpi-card' + (cor ? ' kpi-card--' + cor : '');
-        card.innerHTML = `<div class="kpi-label">${titulo}</div><div class="kpi-value">${valor}</div>` +
-            (detalhe ? `<div class="kpi-detail">${detalhe}</div>` : '');
+        // tudo é texto: escapar para evitar XSS via nomes/detalhes dos dados
+        card.innerHTML = `<div class="kpi-label">${h(titulo)}</div><div class="kpi-value">${h(valor)}</div>` +
+            (detalhe ? `<div class="kpi-detail">${h(detalhe)}</div>` : '');
         el.appendChild(card);
     }
 
@@ -211,7 +222,7 @@
             const det = detalhe(gp);
             return {
                 nome: g.Nome || '',
-                unidade: g.Unidade || '',
+                unidade: unidadeCanonica(g.Unidade || ''),
                 area: g.Area || '',
                 situacao: g.Situacao || '',
                 membros: p.membros,
@@ -228,18 +239,19 @@
 
     function renderRankings() {
         document.querySelectorAll('.rank-period').forEach((el) => { el.textContent = `(${periodoCustom()})`; });
-        const rows = dashRows();
-        const top = [...rows].sort((a, b) => b.pontos - a.pontos).slice(0, 10);
-        const risco = [...rows].sort((a, b) => a.porMembro - b.porMembro).slice(0, 10);
+        // Grupos excluídos do DGP não competem no ranking de pontuação (decisão gerencial)
+        const ativos = dashRows().filter((r) => r.situacao !== 'Excluído');
+        const top = [...ativos].sort((a, b) => b.pontos - a.pontos).slice(0, 10);
+        const risco = [...ativos].sort((a, b) => a.porMembro - b.porMembro).slice(0, 10);
 
         $('rank-top').innerHTML = top.map((r, i) =>
-            `<li><span class="rank-pos">${i + 1}</span> <span class="rank-nome" title="${r.nome}">${truncar(r.nome)}</span>` +
-            `<span class="rank-valor"><b>${fmt(r.pontos)}</b> pts · ${r.unidade.replace('IFBA - Campus ', '')}</span></li>`
+            `<li><span class="rank-pos">${i + 1}</span> <span class="rank-nome" title="${h(r.nome)}">${truncar(h(r.nome))}</span>` +
+            `<span class="rank-valor"><b>${fmt(r.pontos)}</b> pts · ${h(campusCurto(r.unidade))}</span></li>`
         ).join('');
 
         $('rank-risco').innerHTML = risco.map((r, i) =>
-            `<li><span class="rank-pos rank-pos--warn">${i + 1}</span> <span class="rank-nome" title="${r.nome}">${truncar(r.nome)}</span>` +
-            `<span class="rank-valor">${fmt1(r.porMembro)} pts/membro · ${SITUACAO_SHORT[r.situacao] || r.situacao}</span></li>`
+            `<li><span class="rank-pos rank-pos--warn">${i + 1}</span> <span class="rank-nome" title="${h(r.nome)}">${truncar(h(r.nome))}</span>` +
+            `<span class="rank-valor">${fmt1(r.porMembro)} pts/membro · ${h(SITUACAO_SHORT[r.situacao] || r.situacao)}</span></li>`
         ).join('');
     }
 
@@ -262,7 +274,9 @@
             let va, vb;
             if (key.startsWith('detalhamento.')) {
                 const k = key.slice('detalhamento.'.length);
-                va = a.detalhamento[k] || 0; vb = b.detalhamento[k] || 0;
+                // a coluna Orient. exibe concluídas + andamento; ordenar pelo mesmo total
+                va = k === 'orientacoesConcluidas' ? orientPontos(a.detalhamento) : (a.detalhamento[k] || 0);
+                vb = k === 'orientacoesConcluidas' ? orientPontos(b.detalhamento) : (b.detalhamento[k] || 0);
             } else {
                 va = a[key]; vb = b[key];
                 if (typeof va === 'string') { va = va.toLowerCase(); vb = (vb || '').toLowerCase(); }
@@ -278,11 +292,13 @@
             const det = r.detalhamento;
             const atingiuCls = r.atingiu ? 'badge badge--ok' : 'badge badge--bad';
             const atingiuTxt = r.atingiu ? 'SIM' : 'NÃO';
-            return `<tr>
-                <td class="td-nome" title="${r.nome}">${r.nome}</td>
-                <td>${r.unidade.replace('IFBA - Campus ', '')}</td>
-                <td>${r.area}</td>
-                <td>${SITUACAO_SHORT[r.situacao] || r.situacao}</td>
+            const excluido = r.situacao === 'Excluído';
+            const semLider = !r.grupo.LiderId;
+            return `<tr${excluido ? ' class="row-excluido"' : ''}>
+                <td class="td-nome" title="${h(r.nome)}">${h(r.nome)}${excluido ? ' <span class="badge badge--bad">Excluído</span>' : ''}</td>
+                <td>${h(campusCurto(r.unidade))}</td>
+                <td>${h(r.area)}</td>
+                <td>${h(SITUACAO_SHORT[r.situacao] || r.situacao)}${semLider ? ' <span class="badge badge--warn" title="Líder não identificado no DGP — critérios de líder não avaliados">sem líder</span>' : ''}</td>
                 <td class="td-num">${fmt(r.membros)}</td>
                 <td class="td-num td-total">${fmt(r.pontos)}</td>
                 <td class="td-num">${fmt(det.bibliografica || 0)}</td>
@@ -312,7 +328,7 @@
             }
         }
         for (const g of groupsData.grupos) {
-            const campus = (g.Unidade || '').replace('IFBA - Campus ', '') || g.Unidade || '—';
+            const campus = campusCurto(g.Unidade);
             for (const m of (g.membrosMap || [])) {
                 const s = String(m.siape);
                 if (!s || s === 'null' || s === 'undefined') continue;
@@ -427,8 +443,8 @@
         kpi('kpi-pesq', 'Top pesquisador', fmt1(top10[0]?.pontos || 0), (top10[0]?.nome || '—').slice(0, 34));
 
         $('rank-pesq').innerHTML = top10.map((r, i) =>
-            `<li><span class="rank-pos">${i + 1}</span> <span class="rank-nome rank-link" title="Clique para ver as contribuições" onclick="abrirPesquisador('${r.servidor}')">${truncar(r.nome)}</span>` +
-            `<span class="rank-valor"><b>${fmt1(r.pontos)}</b> pts · ${r.campus}${r.lider ? ' · líder' : ''}</span></li>`
+            `<li><span class="rank-pos">${i + 1}</span> <span class="rank-nome rank-link" title="Clique para ver as contribuições" onclick="abrirPesquisador('${r.servidor}')">${truncar(h(r.nome))}</span>` +
+            `<span class="rank-valor"><b>${fmt1(r.pontos)}</b> pts · ${h(r.campus)}${r.lider ? ' · líder' : ''}</span></li>`
         ).join('');
 
         // composição dos pontos do top 10 (soma por categoria)
@@ -469,8 +485,8 @@
             const pos = rows.indexOf(r) + 1;
             return `<tr>
                 <td class="td-num">${pos}</td>
-                <td class="td-nome"><span class="td-link" title="Clique para ver as contribuições" onclick="abrirPesquisador('${r.servidor}')">${truncar(r.nome, 38)}</span></td>
-                <td>${r.campus}</td>
+                <td class="td-nome"><span class="td-link" title="Clique para ver as contribuições" onclick="abrirPesquisador('${r.servidor}')">${truncar(h(r.nome), 38)}</span></td>
+                <td>${h(r.campus)}</td>
                 <td>${r.lider ? '<span class="badge badge--ok">Líder</span>' : '—'}</td>
                 <td class="td-num">${fmt(r.grupos)}</td>
                 <td class="td-num td-total">${fmt1(r.pontos)}</td>
@@ -533,7 +549,7 @@
     }
 
     function prodHTML(p) {
-        const estrato = p.estrato ? `<span class="badge badge--qualis">${p.estrato}</span>` : '';
+        const estrato = p.estrato ? `<span class="badge badge--qualis">${h(p.estrato)}</span>` : '';
         const detalhe = [p.periodico, p.tipo].filter(Boolean).join(' · ');
         return `<li class="pesq-prod">
             <span class="pesq-prod-pts">+${p.pontos}</span>
@@ -590,7 +606,7 @@
             .sort((a, b) => (detalhe(b)[catKey] || 0) - (detalhe(a)[catKey] || 0))
             .slice(0, 10);
         barH('chart-top-categoria',
-            top.map((gp) => (gp.grupo.Nome || '').slice(0, 30)),
+            top.map((gp) => h((gp.grupo.Nome || '').slice(0, 30))),
             top.map((gp) => detalhe(gp)[catKey] || 0),
             CORES_CATEGORIA[catKey] || PALETA[0]);
     }
@@ -601,7 +617,7 @@
 
         const porCampus = {};
         for (const r of rows) {
-            const c = r.unidade.replace('IFBA - Campus ', '') || '(sem campus)';
+            const c = campusCurto(r.unidade) || '(sem campus)';
             porCampus[c] = porCampus[c] || { n: 0, pts: 0, grupos: [] };
             porCampus[c].n++;
             porCampus[c].pts += r.pontos;
@@ -609,9 +625,9 @@
         }
         const campi = Object.entries(porCampus).sort((a, b) => b[1].pts - a[1].pts);
 
-        barH('chart-campus-pontos', campi.map(([c]) => c), campi.map(([, v]) => v.pts), PALETA[0]);
+        barH('chart-campus-pontos', campi.map(([c]) => h(c)), campi.map(([, v]) => v.pts), PALETA[0]);
         barH('chart-campus-media',
-            campi.map(([c]) => c),
+            campi.map(([c]) => h(c)),
             campi.map(([, v]) => v.pts / v.n),
             PALETA[2]);
 
@@ -621,16 +637,16 @@
             porArea[a] = (porArea[a] || 0) + r.pontos;
         }
         const areas = Object.entries(porArea).sort((a, b) => b[1] - a[1]).slice(0, 15);
-        barH('chart-area-pontos', areas.map(([a]) => a.slice(0, 40)), areas.map(([, v]) => v), PALETA[4]);
+        barH('chart-area-pontos', areas.map(([a]) => h(a.slice(0, 40))), areas.map(([, v]) => v), PALETA[4]);
 
         $('campus-tbody').innerHTML = campi.map(([c, v]) => {
             const melhor = [...v.grupos].sort((a, b) => b.pontos - a.pontos)[0];
             return `<tr>
-                <td class="td-nome">${c}</td>
+                <td class="td-nome">${h(c)}</td>
                 <td class="td-num">${fmt(v.n)}</td>
                 <td class="td-num">${fmt1(v.pts)}</td>
                 <td class="td-num">${fmt1(v.pts / v.n)}</td>
-                <td title="${melhor ? melhor.nome : ''}">${melhor ? (melhor.nome.slice(0, 40) + ' · ' + fmt(melhor.pontos) + ' pts') : '—'}</td>
+                <td title="${h(melhor ? melhor.nome : '')}">${melhor ? (h(melhor.nome.slice(0, 40)) + ' · ' + fmt(melhor.pontos) + ' pts') : '—'}</td>
             </tr>`;
         }).join('');
     }
@@ -686,7 +702,11 @@
             b.classList.toggle('is-active', b.dataset.dashPeriod === label);
         });
         const info = $('dash-period-info');
-        if (info) info.textContent = `Período: ${periodoCustom()}`;
+        if (info) {
+            const anoCorrente = dados.meta.maxYear;
+            const incluiParcial = end >= anoCorrente;
+            info.textContent = `Período: ${periodoCustom()}${incluiParcial ? ' — ⚠ inclui ' + anoCorrente + ' (ano em curso, dados parciais)' : ''}`;
+        }
         pesqCache = null; // invalida o ranking de pesquisadores
         const t0 = performance.now();
         pontuarTodos();
@@ -801,12 +821,12 @@
     };
 
     function populateDashFilters() {
-        const campi = [...new Set(groupsData.grupos.map((g) => g.Unidade).filter(Boolean))].sort();
+        const campi = [...new Set(groupsData.grupos.map((g) => unidadeCanonica(g.Unidade)).filter(Boolean))].sort();
         const areas = [...new Set(groupsData.grupos.map((g) => g.Area).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt'));
         const sits = [...new Set(groupsData.grupos.map((g) => g.Situacao).filter(Boolean))];
 
-        $('dash-campus').innerHTML = '<option value="">Todos os campi</option>' + campi.map((c) => `<option value="${c}">${c.replace('IFBA - Campus ', '')}</option>`).join('');
-        $('dash-area').innerHTML = '<option value="">Todas as áreas</option>' + areas.map((a) => `<option value="${a}">${a}</option>`).join('');
-        $('dash-situacao').innerHTML = '<option value="">Todas as situações</option>' + sits.map((s) => `<option value="${s}">${SITUACAO_SHORT[s] || s}</option>`).join('');
+        $('dash-campus').innerHTML = '<option value="">Todos os campi</option>' + campi.map((c) => `<option value="${h(c)}">${h(campusCurto(c))}</option>`).join('');
+        $('dash-area').innerHTML = '<option value="">Todas as áreas</option>' + areas.map((a) => `<option value="${h(a)}">${h(a)}</option>`).join('');
+        $('dash-situacao').innerHTML = '<option value="">Todas as situações</option>' + sits.map((s) => `<option value="${h(s)}">${h(SITUACAO_SHORT[s] || s)}</option>`).join('');
     }
 })();
