@@ -17,6 +17,12 @@ if [[ ! -f "$SRC/data.json" || ! -f "$SRC/data-groups.json" ]]; then
 fi
 
 cp "$SRC/data.json" "$SRC/data-groups.json" "$DEST/"
+
+# Injeta o mapa Servidor→nome extraído dos XLSX brutos (resolve nomes que o
+# build.js não captura: IDs de 6 dígitos, servidores fora dos grupos)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+node "$SCRIPT_DIR/gerar-mapa-nomes.js" "$SRC"
+
 echo "Dados sincronizados:"
 ls -la "$DEST"/data*.json
 echo

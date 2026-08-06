@@ -305,6 +305,12 @@
     let pesqCache = null;    // mapa servidor → { pontos, n, cats } no período atual
 
     function prepararPesquisadores() {
+        // base: mapa Servidor→nome injetado dos XLSX (groupsData.servidores)
+        if (groupsData.servidores) {
+            for (const [id, nome] of Object.entries(groupsData.servidores)) {
+                if (!NOME_PESQ[id]) NOME_PESQ[id] = nome;
+            }
+        }
         for (const g of groupsData.grupos) {
             const campus = (g.Unidade || '').replace('IFBA - Campus ', '') || g.Unidade || '—';
             for (const m of (g.membrosMap || [])) {
@@ -318,6 +324,18 @@
         }
     }
 
+    /** Normaliza o campo Servidor: strings sujas do tipo
+     * "<VinculoQueryset [<Vinculo: Nome (268700) (Servidor)>]>" viram {id, nome}. */
+    function normalizarServidor(s) {
+        if (/^\d+$/.test(s)) return { id: s, nome: null };
+        const mId = s.match(/\((\d{5,})\)\s*\(Servidor\)/);
+        if (mId) {
+            const mNome = s.match(/Vinculo: (.+?) \(\d{5,}\)/);
+            return { id: mId[1], nome: mNome ? mNome[1].trim() : null };
+        }
+        return { id: null, nome: null };
+    }
+
     /** Pontua cada pesquisador no período atual, replicando o validador oficial. */
     function pontuarPesquisadores() {
         const start = (periodo.start != null) ? periodo.start : dados.meta.minYear;
@@ -329,6 +347,10 @@
             for (const r of arr) {
                 const s = r.Servidor;
                 if (!s) continue;
+                const ns = normalizarServidor(s);
+                if (!ns.id) continue;
+                const sid = ns.id;
+                if (ns.nome && !NOME_PESQ[sid]) NOME_PESQ[sid] = ns.nome;
                 const ano = parseInt(r.Ano, 10);
                 if (isNaN(ano) || ano < start || ano > end) continue;
                 const mapping = mapProducaoToCategoria(r.Tipo || '', r.Subtipo || '', r.Estrato || '', r.concluida);
@@ -338,11 +360,11 @@
                 const dk = r.dedupKey || '';
                 if (dk) {
                     const key = mapping.categoria + '|' + dk;
-                    const sseen = seen[s] || (seen[s] = new Set());
+                    const sseen = seen[sid] || (seen[sid] = new Set());
                     if (sseen.has(key)) continue;
                     sseen.add(key);
                 }
-                const p = mapa[s] || (mapa[s] = { pontos: 0, n: 0, cats: {} });
+                const p = mapa[sid] || (mapa[sid] = { pontos: 0, n: 0, cats: {} });
                 p.pontos += item.pontos;
                 p.n += 1;
                 p.cats[mapping.categoria] = (p.cats[mapping.categoria] || 0) + item.pontos;
