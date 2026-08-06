@@ -252,6 +252,22 @@
         </section>
     </div>
 
+    <!-- ── Modal do pesquisador ── -->
+    <div id="pesq-modal" class="pesq-modal-overlay is-hidden" role="dialog" aria-modal="true" aria-labelledby="pesq-modal-nome">
+        <div class="pesq-modal">
+            <button id="pesq-modal-close" class="pesq-modal-close" type="button" aria-label="Fechar">×</button>
+            <h2 id="pesq-modal-nome"></h2>
+            <div id="pesq-modal-meta" class="pesq-modal-meta"></div>
+            <div class="kpi-grid" id="pesq-modal-kpis"></div>
+            <div class="chart-card">
+                <h3>Composição da Pontuação <span class="rank-period"></span></h3>
+                <p class="chart-note">De onde vêm os pontos deste pesquisador no período selecionado, por categoria do regulamento.</p>
+                <canvas id="pesq-modal-chart"></canvas>
+            </div>
+            <div id="pesq-modal-producoes"></div>
+        </div>
+    </div>
+
     <div id="toast-container" aria-live="polite" aria-atomic="false"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>

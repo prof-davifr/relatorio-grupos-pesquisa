@@ -364,10 +364,21 @@
                     if (sseen.has(key)) continue;
                     sseen.add(key);
                 }
-                const p = mapa[sid] || (mapa[sid] = { pontos: 0, n: 0, cats: {} });
+                const p = mapa[sid] || (mapa[sid] = { pontos: 0, n: 0, cats: {}, prods: [] });
                 p.pontos += item.pontos;
                 p.n += 1;
                 p.cats[mapping.categoria] = (p.cats[mapping.categoria] || 0) + item.pontos;
+                p.prods.push({
+                    cat: mapping.categoria,
+                    itemId: mapping.itemId,
+                    itemDesc: item.desc,
+                    pontos: item.pontos,
+                    tipo: r.Tipo || '',
+                    titulo: r.Publicacao || r.Publicação || r.titulo || r.Título || r.Nome || '',
+                    periodico: r.Periodico || r.Periódico || '',
+                    estrato: r.Estrato || '',
+                    ano: r.Ano || ''
+                });
             }
         };
 
@@ -416,7 +427,7 @@
         kpi('kpi-pesq', 'Top pesquisador', fmt1(top10[0]?.pontos || 0), (top10[0]?.nome || '—').slice(0, 34));
 
         $('rank-pesq').innerHTML = top10.map((r, i) =>
-            `<li><span class="rank-pos">${i + 1}</span> <span class="rank-nome" title="${r.nome}">${truncar(r.nome)}</span>` +
+            `<li><span class="rank-pos">${i + 1}</span> <span class="rank-nome rank-link" title="Clique para ver as contribuições" onclick="abrirPesquisador('${r.servidor}')">${truncar(r.nome)}</span>` +
             `<span class="rank-valor"><b>${fmt1(r.pontos)}</b> pts · ${r.campus}${r.lider ? ' · líder' : ''}</span></li>`
         ).join('');
 
@@ -458,7 +469,7 @@
             const pos = rows.indexOf(r) + 1;
             return `<tr>
                 <td class="td-num">${pos}</td>
-                <td class="td-nome" title="${r.nome}">${truncar(r.nome, 38)}</td>
+                <td class="td-nome"><span class="td-link" title="Clique para ver as contribuições" onclick="abrirPesquisador('${r.servidor}')">${truncar(r.nome, 38)}</span></td>
                 <td>${r.campus}</td>
                 <td>${r.lider ? '<span class="badge badge--ok">Líder</span>' : '—'}</td>
                 <td class="td-num">${fmt(r.grupos)}</td>
@@ -472,6 +483,73 @@
             </tr>`;
         }).join('');
     }
+
+    // ─── modal do pesquisador ─────────────────────────────────────────────────
+    const CAT_LABEL = Object.fromEntries(CATEGORIAS.map((c) => [c.key, c.label]));
+
+    function abrirPesquisador(servidor) {
+        const mapa = pesqCache || pontuarPesquisadores();
+        const v = mapa[servidor];
+        if (!v) return;
+        const nome = nomePesq(servidor, NOME_PESQ[servidor]);
+        const campus = CAMPUS_PESQ[servidor] || '—';
+        const lider = LIDER_PESQ.has(servidor);
+        const grupos = GRUPOS_PESQ[servidor] || 0;
+
+        $('pesq-modal-nome').textContent = nome;
+        $('pesq-modal-meta').innerHTML =
+            `<span class="badge badge--ok">${campus}</span>` +
+            (lider ? `<span class="badge badge--ok">Líder de grupo</span>` : '') +
+            (grupos ? `<span class="badge badge--ok">Membro de ${grupos} grupo(s)</span>` : '') +
+            `<span class="pesq-modal-siape">SIAPE ${servidor}</span>`;
+
+        $('pesq-modal-kpis').innerHTML = '';
+        kpi('pesq-modal-kpis', 'Pontos no período', fmt1(v.pontos), periodoCustom(), 'accent');
+        kpi('pesq-modal-kpis', 'Produções pontuadas', fmt(v.n), 'após deduplicação');
+        kpi('pesq-modal-kpis', 'Média pts/produção', fmt1(v.pontos / (v.n || 1)), 'intensidade média');
+        const nCats = Object.keys(v.cats).length;
+        kpi('pesq-modal-kpis', 'Categorias pontuadas', fmt(nCats), 'de 8 possíveis');
+
+        const catsOrdenadas = CATEGORIAS.filter((c) => v.cats[c.key]).sort((a, b) => (v.cats[b.key] || 0) - (v.cats[a.key] || 0));
+        doughnut('pesq-modal-chart',
+            catsOrdenadas.map((c) => c.label),
+            catsOrdenadas.map((c) => v.cats[c.key]));
+
+        const prodsPorCat = {};
+        for (const p of v.prods) (prodsPorCat[p.cat] || (prodsPorCat[p.cat] = [])).push(p);
+
+        $('pesq-modal-producoes').innerHTML = catsOrdenadas.map((c) => {
+            const prods = prodsPorCat[c.key].sort((a, b) => b.pontos - a.pontos);
+            const titulo = CAT_LABEL[c.key];
+            const totalCat = v.cats[c.key];
+            return `<div class="pesq-cat">
+                <h4 style="color:${CORES_CATEGORIA[c.key]}">${titulo} <span class="pesq-cat-pts">${fmt1(totalCat)} pts · ${fmt(prods.length)} itens</span></h4>
+                <ul class="pesq-prods">${prods.map(prodHTML).join('')}</ul>
+            </div>`;
+        }).join('');
+
+        $('pesq-modal').classList.remove('is-hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function prodHTML(p) {
+        const estrato = p.estrato ? `<span class="badge badge--qualis">${p.estrato}</span>` : '';
+        const detalhe = [p.periodico, p.tipo].filter(Boolean).join(' · ');
+        return `<li class="pesq-prod">
+            <span class="pesq-prod-pts">+${p.pontos}</span>
+            <div class="pesq-prod-body">
+                <div class="pesq-prod-titulo">${escapeHtml(p.titulo || '(sem título)')}</div>
+                <div class="pesq-prod-meta">${p.ano ? `<b>${p.ano}</b>` : ''} ${detalhe ? '· ' + escapeHtml(detalhe) : ''} ${estrato} ${p.itemDesc ? '<span class="pesq-prod-item">' + escapeHtml(p.itemDesc) + '</span>' : ''}</div>
+            </div>
+        </li>`;
+    }
+
+    function fecharPesquisador() {
+        $('pesq-modal').classList.add('is-hidden');
+        document.body.style.overflow = '';
+    }
+
+    window.abrirPesquisador = abrirPesquisador;
 
     // ─── render: onde pontuam ─────────────────────────────────────────────────
     function renderOndePontuam() {
@@ -698,6 +776,9 @@
             $(id).addEventListener('change', renderDashTable);
         });
         $('pesq-search').addEventListener('input', () => renderPesqTable(null));
+        $('pesq-modal-close').addEventListener('click', fecharPesquisador);
+        $('pesq-modal').addEventListener('click', (e) => { if (e.target === $('pesq-modal')) fecharPesquisador(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('pesq-modal').classList.contains('is-hidden')) fecharPesquisador(); });
         document.querySelectorAll('#pesq-table th[data-pesq-sort]').forEach((th) => {
             th.addEventListener('click', () => {
                 const key = th.dataset.pesqSort;
