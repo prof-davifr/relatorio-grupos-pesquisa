@@ -18,6 +18,7 @@
 
 - [x] **XSS corrigido** — escapeHtml em todos os pontos de renderização; testado com payload real (executou como texto, 0 HTML cru).
 - [x] **Excluídos fora do ranking** — grupos 'Excluído' não competem no Top 10/risco; badge + linha atenuada na tabela.
+- [x] **Dedup por título real/nº de registro** — `limpar-dados.js` regenera o dedupKey (título extraído do formato Lattes; nº de registro p/ inovação). Corrige o mesmo artigo com citações divergentes pontuando 2x (caso Davi Franco Rego). 11.539 duplicatas consolidadas; soma de pontos 711.657→655.220.
 - [x] **Duplicatas consolidadas** — `scripts/limpar-dados.js` (4.865 registros; mantido o de maior pontuação); inovação 935→765; soma pontos 711.354→711.657 (corrigida).
 - [x] **Unidades normalizadas** — 'Salvador' unificado (94 grupos); `unidadeCanonica` no dashboard.
 - [x] **Aviso de ano parcial** no período (2026 em curso).
