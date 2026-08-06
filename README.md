@@ -30,23 +30,33 @@ Aplicacao web estatica para validacao e geracao de relatorios PDF dos grupos de 
 ├── criterios.js            # Motor de validacao e pontuacao (853 linhas)
 ├── style.css               # Estilos da aplicacao
 ├── specs-validacao.html    # Pagina com especificacoes dos criterios
-├── data.json               # Dados do dashboard (grupos, metricas) [dev]
-├── data-groups.json        # Dados detalhados dos grupos [dev]
-├── tests/                  # Testes unitarios (Jest)
+├── data.json               # Dados versionados (producoes, metricas)
+├── data-groups.json        # Dados versionados (grupos detalhados, producoes)
+├── scripts/sync-data.sh    # Sincroniza dados do dashboard local
+├── tests/                  # Testes unitarios (Jest) + smoke test com dados reais
 ├── package.json
 └── regulamento_dos_grupos_de_pesquisa1.pdf  # Base legal
 ```
 
 ## Dependencia de dados
 
-Os dados sao servidos pelo repositorio [dashboard-PRPGI](https://github.com/prof-davifr/dashboard-prpgi) via GitHub Pages:
+Este repositorio e **autocontido**: os arquivos `data.json` e `data-groups.json` sao
+versionados aqui e servidos pelo proprio GitHub Pages deste projeto, ao lado do
+`index.html`. Nao ha dependencia do Pages do dashboard.
 
-- `data.json` -- dados do dashboard (grupos, metricas)
-- `data-groups.json` -- dados detalhados dos grupos (producoes, membros, SIAPE)
+- `data.json` -- producao academica compilada (bibliografica, tecnica, inovacao, orientacoes)
+- `data-groups.json` -- grupos com lideres, membros, area, unidade e producoes detalhadas
 
-Em **producao** (GitHub Pages), os arquivos sao buscados automaticamente de `https://prof-davifr.github.io/dashboard-prpgi/`.
+Ambos sao gerados por `dashboard-PRPGI/build.js` (a partir dos scrapers SUAP/CNPq + DGP)
+e sincronizados para ca com:
 
-Em **desenvolvimento local**, copie `data.json` e `data-groups.json` da raiz do repositorio dashboard-PRPGI para a raiz deste projeto.
+```bash
+scripts/sync-data.sh        # copia data.json e data-groups.json do dashboard local
+npm test                    # testes unitarios + smoke test com dados reais
+git add -A && git commit -m "sync: dados do dashboard" && git push
+```
+
+Em **desenvolvimento local**, os dados ja estao na raiz (versionados), basta `npm start`.
 
 ## Desenvolvimento
 
