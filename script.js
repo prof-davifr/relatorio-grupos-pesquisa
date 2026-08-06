@@ -76,11 +76,14 @@ function showToast(message, durationMs = 6000, type = 'info') {
 async function carregarDados() {
     try {
         // Dados servidos ao lado do index.html (dev local E GitHub Pages deste repo).
-        // Não depende mais do Pages do dashboard — este projeto é autocontido.
-        const BASE = '';
+        // './' resolve relativo à página — sem a barra inicial vira '/data.json'
+        // (raiz do domínio) e quebra no subpath do GitHub Pages.
+        const BASE = '.';
+        // Revalida com o servidor (ETag) em vez de usar cache stale do navegador.
+        const OPTS = { cache: 'no-cache' };
         const [respDash, respGroups] = await Promise.all([
-            fetch(`${BASE}/data.json`),
-            fetch(`${BASE}/data-groups.json`)
+            fetch(`${BASE}/data.json`, OPTS),
+            fetch(`${BASE}/data-groups.json`, OPTS)
         ]);
         if (!respDash.ok || !respGroups.ok) throw new Error('Arquivos de dados não encontrados');
         STATE.dados = await respDash.json();
