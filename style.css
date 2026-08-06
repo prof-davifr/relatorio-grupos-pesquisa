@@ -94,7 +94,6 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
 .toast--success { background: #2e7d32; }
 .toast--warning { background: #e65100; }
 .toast--error { background: #c62828; }
-.toast-icon { font-size: 1rem; flex-shrink: 0; }
 
 /* Aviso Experimental */
 .aviso-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 1rem; }
@@ -102,7 +101,6 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
 .aviso-modal { background: var(--card-bg); border-radius: 12px; max-width: 580px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; animation: aviso-fadein 0.3s ease; }
 @keyframes aviso-fadein { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 .aviso-header { background: #b71c1c; color: #fff; padding: 1.5rem 2rem; display: flex; align-items: center; gap: 1rem; }
-.aviso-icon { font-size: 2rem; }
 .aviso-header h2 { font-size: 1.5rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
 .aviso-body { padding: 2rem 2rem 1rem; font-size: 1.15rem; line-height: 1.7; color: var(--text); }
 .aviso-body p { margin-bottom: 1rem; }

@@ -16,7 +16,6 @@
     <div id="aviso-experimental" class="aviso-overlay is-hidden" role="alertdialog" aria-modal="true" aria-labelledby="aviso-title">
         <div class="aviso-modal">
             <div class="aviso-header">
-                <span class="aviso-icon" aria-hidden="true">⚖</span>
                 <h2 id="aviso-title">Aviso</h2>
             </div>
             <div class="aviso-body">
@@ -48,8 +47,8 @@
                 <p class="subtitle">PRPGI / IFBA</p>
             </div>
             <nav class="view-switch" aria-label="Alternar entre validação e dashboard">
-                <button id="view-validacao-btn" class="view-btn is-active" type="button">✓ Validação</button>
-                <button id="view-dashboard-btn" class="view-btn" type="button">📊 Dashboard</button>
+                <button id="view-validacao-btn" class="view-btn is-active" type="button">Validação</button>
+                <button id="view-dashboard-btn" class="view-btn" type="button">Dashboard</button>
             </nav>
         </div>
     </header>
@@ -132,17 +131,17 @@
         </div>
 
         <div class="dashboard-tabs" role="tablist" aria-label="Seções do dashboard">
-            <button class="dash-tab is-active" data-dash-tab="ranking" role="tab">🏆 Ranking de Grupos</button>
-            <button class="dash-tab" data-dash-tab="onde" role="tab">📈 Onde Pontuam</button>
-            <button class="dash-tab" data-dash-tab="campus" role="tab">🗺 Campus &amp; Área</button>
-            <button class="dash-tab" data-dash-tab="distribuicao" role="tab">⚖ Distribuição</button>
+            <button class="dash-tab is-active" data-dash-tab="ranking" role="tab">Ranking de Grupos</button>
+            <button class="dash-tab" data-dash-tab="onde" role="tab">Onde Pontuam</button>
+            <button class="dash-tab" data-dash-tab="campus" role="tab">Campus &amp; Área</button>
+            <button class="dash-tab" data-dash-tab="distribuicao" role="tab">Distribuição</button>
         </div>
 
         <!-- ── Ranking de Grupos ── -->
         <section id="dash-ranking" class="dash-panel is-active" role="tabpanel">
             <div class="rank-grid">
-                <div class="rank-card"><h3>🏆 Top 10 por Pontuação <span class="rank-period"></span></h3><ol id="rank-top"></ol></div>
-                <div class="rank-card"><h3>⚠️ Menor Pts/Membro (risco) <span class="rank-period"></span></h3><ol id="rank-risco"></ol></div>
+                <div class="rank-card"><h3>Top 10 por Pontuação <span class="rank-period"></span></h3><ol id="rank-top"></ol></div>
+                <div class="rank-card"><h3>Menor Pts/Membro (risco) <span class="rank-period"></span></h3><ol id="rank-risco"></ol></div>
             </div>
             <div class="landing-controls dash-filters">
                 <input type="text" id="dash-search" placeholder="Buscar grupo..." aria-label="Buscar grupo no dashboard">

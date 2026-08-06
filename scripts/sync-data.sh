@@ -17,7 +17,7 @@ if [[ ! -f "$SRC/data.json" || ! -f "$SRC/data-groups.json" ]]; then
 fi
 
 cp "$SRC/data.json" "$SRC/data-groups.json" "$DEST/"
-echo "✓ Dados sincronizados:"
+echo "Dados sincronizados:"
 ls -la "$DEST"/data*.json
 echo
 echo "Próximos passos: npm test && git add -A && git commit -m 'sync: dados do dashboard' && git push"

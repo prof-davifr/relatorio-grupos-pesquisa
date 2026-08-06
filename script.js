@@ -60,11 +60,10 @@ function escapeHtml(value) {
 function showToast(message, durationMs = 6000, type = 'info') {
     const container = $('toast-container');
     if (!container) return;
-    const icons = { info: 'ℹ', success: '✓', warning: '⚠', error: '✗' };
     const toast = document.createElement('div');
     toast.className = `toast toast--${type}`;
     toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
-    toast.innerHTML = `<span class="toast-icon" aria-hidden="true">${icons[type] || icons.info}</span> ${escapeHtml(message)}`;
+    toast.innerHTML = escapeHtml(message);
     container.appendChild(toast);
     requestAnimationFrame(() => toast.classList.add('toast--visible'));
     setTimeout(() => {
@@ -431,16 +430,16 @@ function gerarRelatorio(edits) {
         criterios.forEach(c => {
             let icon, color;
             if (c.detalhe === "Não verificado") {
-                icon = '○';
+                icon = 'N/V';
                 color = '#aaa';
             } else if (c.passou) {
-                icon = '✓';
+                icon = 'OK';
                 color = '#2e7d32';
             } else if (c.tipo === 'obrigatorio') {
-                icon = '✗';
+                icon = 'NÃO';
                 color = '#d46b6b';
             } else {
-                icon = '⚠';
+                icon = '!';
                 color = '#f57f17';
             }
             html += `<tr>
