@@ -296,6 +296,161 @@
         }).join('');
     }
 
+    // ─── render: pesquisadores ────────────────────────────────────────────────
+    const NOME_PESQ = {};    // servidor → nome
+    const CAMPUS_PESQ = {};  // servidor → campus
+    const LIDER_PESQ = new Set();
+    const GRUPOS_PESQ = {};  // servidor → nº de grupos
+    let pesqSort = { key: 'pontos', asc: false };
+    let pesqCache = null;    // mapa servidor → { pontos, n, cats } no período atual
+
+    function prepararPesquisadores() {
+        for (const g of groupsData.grupos) {
+            const campus = (g.Unidade || '').replace('IFBA - Campus ', '') || g.Unidade || '—';
+            for (const m of (g.membrosMap || [])) {
+                const s = String(m.siape);
+                if (!s || s === 'null' || s === 'undefined') continue;
+                if (!NOME_PESQ[s]) NOME_PESQ[s] = m.nome || s;
+                if (!CAMPUS_PESQ[s]) CAMPUS_PESQ[s] = campus;
+                GRUPOS_PESQ[s] = (GRUPOS_PESQ[s] || 0) + 1;
+            }
+            if (g.LiderId) LIDER_PESQ.add(String(g.LiderId));
+        }
+    }
+
+    /** Pontua cada pesquisador no período atual, replicando o validador oficial. */
+    function pontuarPesquisadores() {
+        const start = (periodo.start != null) ? periodo.start : dados.meta.minYear;
+        const end = (periodo.end != null) ? periodo.end : dados.meta.maxYear;
+        const mapa = {};
+        const seen = {};
+
+        const processar = (arr) => {
+            for (const r of arr) {
+                const s = r.Servidor;
+                if (!s) continue;
+                const ano = parseInt(r.Ano, 10);
+                if (isNaN(ano) || ano < start || ano > end) continue;
+                const mapping = mapProducaoToCategoria(r.Tipo || '', r.Subtipo || '', r.Estrato || '', r.concluida);
+                if (!mapping) continue;
+                const item = SCORING_TABLE[mapping.categoria]?.items.find((i) => i.id === mapping.itemId);
+                if (!item) continue;
+                const dk = r.dedupKey || '';
+                if (dk) {
+                    const key = mapping.categoria + '|' + dk;
+                    const sseen = seen[s] || (seen[s] = new Set());
+                    if (sseen.has(key)) continue;
+                    sseen.add(key);
+                }
+                const p = mapa[s] || (mapa[s] = { pontos: 0, n: 0, cats: {} });
+                p.pontos += item.pontos;
+                p.n += 1;
+                p.cats[mapping.categoria] = (p.cats[mapping.categoria] || 0) + item.pontos;
+            }
+        };
+
+        processar(groupsData.producoes.bibliografica || []);
+        processar(groupsData.producoes.tecnica || []);
+        processar(groupsData.producoes.inovacao || []);
+        processar(groupsData.producoes.concluidas || []);
+        processar(groupsData.producoes.andamento || []);
+        pesqCache = mapa;
+        return mapa;
+    }
+
+    function pesqRows() {
+        const mapa = pesqCache || pontuarPesquisadores();
+        return Object.entries(mapa)
+            .map(([s, v]) => ({
+                servidor: s,
+                nome: nomePesq(s, NOME_PESQ[s]),
+                campus: CAMPUS_PESQ[s] || '—',
+                lider: LIDER_PESQ.has(s),
+                grupos: GRUPOS_PESQ[s] || 0,
+                pontos: v.pontos,
+                n: v.n,
+                cats: v.cats
+            }))
+            .sort((a, b) => b.pontos - a.pontos);
+    }
+
+    function orientPesq(cats) { return (cats.orientacoesConcluidas || 0) + (cats.orientacoesAndamento || 0); }
+
+    /** Nome apresentável: cai para "Servidor <id>" se não resolvido/parse sujo. */
+    function nomePesq(s, nome) {
+        if (nome && !nome.includes('<') && !nome.includes('Vinculo') && nome.trim()) return nome;
+        return 'Servidor ' + s;
+    }
+
+    function renderPesquisadores() {
+        const rows = pesqRows();
+        const totalPts = rows.reduce((s, r) => s + r.pontos, 0);
+        const top10 = rows.slice(0, 10);
+
+        $('kpi-pesq').innerHTML = '';
+        kpi('kpi-pesq', 'Pesquisadores que pontuam', fmt(rows.length), periodoCustom(), 'accent');
+        kpi('kpi-pesq', 'Pontos no período', fmt1(totalPts), 'soma de todos os pesquisadores');
+        kpi('kpi-pesq', 'Média por pesquisador', fmt1(totalPts / (rows.length || 1)), 'dos que pontuam');
+        kpi('kpi-pesq', 'Top pesquisador', fmt1(top10[0]?.pontos || 0), (top10[0]?.nome || '—').slice(0, 34));
+
+        $('rank-pesq').innerHTML = top10.map((r, i) =>
+            `<li><span class="rank-pos">${i + 1}</span> <span class="rank-nome" title="${r.nome}">${truncar(r.nome)}</span>` +
+            `<span class="rank-valor"><b>${fmt1(r.pontos)}</b> pts · ${r.campus}${r.lider ? ' · líder' : ''}</span></li>`
+        ).join('');
+
+        // composição dos pontos do top 10 (soma por categoria)
+        const somaCats = {};
+        for (const r of top10) for (const [cat, pts] of Object.entries(r.cats)) somaCats[cat] = (somaCats[cat] || 0) + pts;
+        const labels = CATEGORIAS.filter((c) => somaCats[c.key] > 0).map((c) => c.label);
+        const values = CATEGORIAS.filter((c) => somaCats[c.key] > 0).map((c) => somaCats[c.key]);
+        doughnut('chart-pesq-composicao', labels, values);
+
+        renderPesqTable(rows);
+    }
+
+    function renderPesqTable(rows) {
+        if (!rows) rows = pesqRows();
+        const search = ($('pesq-search').value || '').toLowerCase().trim();
+        let filtered = rows;
+        if (search) filtered = rows.filter((r) => r.nome.toLowerCase().includes(search) || r.servidor.includes(search));
+
+        const { key, asc } = pesqSort;
+        filtered = [...filtered];
+        if (key === 'pos') { filtered.sort((a, b) => rows.indexOf(a) - rows.indexOf(b)); }
+        else {
+            filtered.sort((a, b) => {
+                let va, vb;
+                if (key.startsWith('cats.')) {
+                    const k = key.slice(5);
+                    va = a.cats[k] || 0; vb = b.cats[k] || 0;
+                } else { va = a[key]; vb = b[key]; }
+                if (typeof va === 'string') { va = va.toLowerCase(); vb = (vb || '').toLowerCase(); }
+                if (key === 'lider') { va = va ? 1 : 0; vb = vb ? 1 : 0; }
+                const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+                return asc ? cmp : -cmp;
+            });
+        }
+
+        $('pesq-count').textContent = `${fmt(filtered.length)} de ${fmt(rows.length)} pesquisadores`;
+        $('pesq-tbody').innerHTML = filtered.map((r) => {
+            const pos = rows.indexOf(r) + 1;
+            return `<tr>
+                <td class="td-num">${pos}</td>
+                <td class="td-nome" title="${r.nome}">${truncar(r.nome, 38)}</td>
+                <td>${r.campus}</td>
+                <td>${r.lider ? '<span class="badge badge--ok">Líder</span>' : '—'}</td>
+                <td class="td-num">${fmt(r.grupos)}</td>
+                <td class="td-num td-total">${fmt1(r.pontos)}</td>
+                <td class="td-num">${fmt(r.n)}</td>
+                <td class="td-num">${fmt(r.cats.bibliografica || 0)}</td>
+                <td class="td-num">${fmt(r.cats.tecnica || 0)}</td>
+                <td class="td-num">${fmt(r.cats.eventos || 0)}</td>
+                <td class="td-num">${fmt(orientPesq(r.cats))}</td>
+                <td class="td-num">${fmt(r.cats.inovacao || 0)}</td>
+            </tr>`;
+        }).join('');
+    }
+
     // ─── render: onde pontuam ─────────────────────────────────────────────────
     function renderOndePontuam() {
         const soma = somaPorCategoria();
@@ -432,6 +587,7 @@
         });
         const info = $('dash-period-info');
         if (info) info.textContent = `Período: ${periodoCustom()}`;
+        pesqCache = null; // invalida o ranking de pesquisadores
         const t0 = performance.now();
         pontuarTodos();
         // eslint-disable-next-line no-console
@@ -444,6 +600,7 @@
         if (!dados) return;
         renderRankings();
         renderDashTable();
+        renderPesquisadores();
         renderOndePontuam();
         renderCampusArea();
         renderDistribuicao();
@@ -484,6 +641,7 @@
         const maxYear = dados.meta.maxYear;
         const minYear = dados.meta.minYear;
 
+        prepararPesquisadores();
         // período inicial: todo
         aplicarPeriodo(minYear, maxYear, 'all');
 
@@ -516,6 +674,15 @@
         ['dash-search', 'dash-campus', 'dash-area', 'dash-situacao'].forEach((id) => {
             $(id).addEventListener('input', renderDashTable);
             $(id).addEventListener('change', renderDashTable);
+        });
+        $('pesq-search').addEventListener('input', () => renderPesqTable(null));
+        document.querySelectorAll('#pesq-table th[data-pesq-sort]').forEach((th) => {
+            th.addEventListener('click', () => {
+                const key = th.dataset.pesqSort;
+                if (pesqSort.key === key) pesqSort.asc = !pesqSort.asc;
+                else { pesqSort.key = key; pesqSort.asc = ['nome', 'campus'].includes(key); }
+                renderPesqTable(null);
+            });
         });
         document.querySelectorAll('#dash-table th[data-dash-sort]').forEach((th) => {
             th.addEventListener('click', () => {

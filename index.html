@@ -132,6 +132,7 @@
 
         <div class="dashboard-tabs" role="tablist" aria-label="Seções do dashboard">
             <button class="dash-tab is-active" data-dash-tab="ranking" role="tab">Ranking de Grupos</button>
+            <button class="dash-tab" data-dash-tab="pesquisadores" role="tab">Pesquisadores</button>
             <button class="dash-tab" data-dash-tab="onde" role="tab">Onde Pontuam</button>
             <button class="dash-tab" data-dash-tab="campus" role="tab">Campus &amp; Área</button>
             <button class="dash-tab" data-dash-tab="distribuicao" role="tab">Distribuição</button>
@@ -171,6 +172,41 @@
                         </tr>
                     </thead>
                     <tbody id="dash-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ── Pesquisadores ── -->
+        <section id="dash-pesquisadores" class="dash-panel" role="tabpanel">
+            <div class="kpi-grid" id="kpi-pesq"></div>
+            <div class="rank-grid">
+                <div class="rank-card"><h3>Top 10 Pesquisadores por Pontuação <span class="rank-period"></span></h3><p class="chart-note">Os 10 pesquisadores que mais geram pontos no período, pela mesma regra de pontuação dos grupos. O valor reflete a produção pontuada (com deduplicação por título/categoria).</p><ol id="rank-pesq"></ol></div>
+                <div class="chart-card"><h3>Composição dos Pontos — Top 10 Pesquisadores</h3><p class="chart-note">De onde vêm os pontos dos 10 mais produtivos: se a fatia é dominada por orientações ou bibliográfica, é onde eles concentram esforço.</p><canvas id="chart-pesq-composicao"></canvas></div>
+            </div>
+            <div class="landing-controls dash-filters">
+                <input type="text" id="pesq-search" placeholder="Buscar pesquisador..." aria-label="Buscar pesquisador">
+                <span id="pesq-count" class="group-count" aria-live="polite"></span>
+            </div>
+            <div class="table-wrapper">
+                <p class="chart-note">Ranking completo de pesquisadores no período. "Líder" indica quem é líder de algum grupo no DGP; "Grupos" é o nº de grupos em que o pesquisador é membro; as colunas de categoria mostram de onde vêm os pontos de cada um.</p>
+                <table id="pesq-table" aria-label="Ranking de pesquisadores">
+                    <thead>
+                        <tr>
+                            <th data-pesq-sort="pos">#</th>
+                            <th data-pesq-sort="nome">Pesquisador</th>
+                            <th data-pesq-sort="campus">Campus</th>
+                            <th data-pesq-sort="lider">Líder</th>
+                            <th data-pesq-sort="grupos">Grupos</th>
+                            <th data-pesq-sort="pontos">Pontos</th>
+                            <th data-pesq-sort="n">Produções</th>
+                            <th data-pesq-sort="cats.bibliografica" title="Pontos de produção bibliográfica">Biblio</th>
+                            <th data-pesq-sort="cats.tecnica" title="Pontos de produções técnicas">Técnica</th>
+                            <th data-pesq-sort="cats.eventos" title="Pontos de eventos">Eventos</th>
+                            <th data-pesq-sort="cats.orientacoesConcluidas" title="Pontos de orientações concluídas e em andamento">Orient.</th>
+                            <th data-pesq-sort="cats.inovacao" title="Pontos de inovação">Inov.</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pesq-tbody"></tbody>
                 </table>
             </div>
         </section>
