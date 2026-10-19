@@ -345,6 +345,29 @@ function mapProducaoToCategoria(tipo, subtipo, estrato, concluida) {
     return null;
 }
 
+/** Maiúsculas sem acentos, para comparar a Unidade do DGP com o nome da cidade. */
+function normalizarTextoCampus(s) {
+    if (!s) return "";
+    return s.toString().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+// Cópia de CAMPUS_TO_CITY de ../dashboard-prpgi/src/shared.js — manter igual.
+// Só IFBA; não incluir campi do IF Baiano.
+const CAMPUS_CIDADE_IFBA = {
+    "BAR": "BARREIRAS", "BRU": "BRUMADO", "CAM": "CAMAÇARI", "CFO": "CAMPO FORMOSO",
+    "EC": "EUCLIDES DA CUNHA", "EUN": "EUNÁPOLIS", "FS": "FEIRA DE SANTANA",
+    "ILH": "ILHÉUS", "IRE": "IRECÊ", "ITA": "ITABUNA", "JAC": "JACOBINA", "JAG": "JAGUAQUARA",
+    "JEQ": "JEQUIÉ", "LF": "LAURO DE FREITAS", "SAM": "SANTO AMARO", "SEA": "SEABRA",
+    "SF": "SIMÕES FILHO", "UBA": "UBAITABA", "VAL": "VALENÇA", "VC": "VITÓRIA DA CONQUISTA",
+    "SAJ": "SANTO ANTÔNIO DE JESUS", "JUA": "JUAZEIRO", "PA": "PAULO AFONSO",
+    "PIS": "POLO DE INOVAÇÃO SALVADOR", "PS": "PORTO SEGURO", "SSA": "SALVADOR"
+};
+
+// Da cidade mais longa para a mais curta: "POLO DE INOVAÇÃO SALVADOR" tem de
+// ser testado antes de "SALVADOR", que está contido nele.
+const CAMPUS_ENTRIES_ORDENADAS = Object.entries(CAMPUS_CIDADE_IFBA)
+    .sort((a, b) => b[1].length - a[1].length);
+
 class ValidadorGrupo {
     constructor(grupo, groupsData, dashboardData, periodoSelecionado, customPeriod = null) {
         this.grupo = grupo;
@@ -360,18 +383,14 @@ class ValidadorGrupo {
     }
 
     _mapCampus() {
-        const CAMPUS_TO_CITY = {
-            "BAR": "BARREIRAS", "BRU": "BRUMADO", "CAM": "CAMACARI", "CFO": "CAMPO FORMOSO",
-            "EC": "EUCLIDES DA CUNHA", "EUN": "EUNAPOLIS", "FS": "FEIRA DE SANTANA",
-            "ILH": "ILHEUS", "IRE": "IRECE", "JAC": "JACOBINA", "JAG": "JAGUAQUARA",
-            "JEQ": "JEQUIE", "LF": "LAURO DE FREITAS", "SAM": "SANTO AMARO", "SEA": "SEABRA",
-            "SF": "SIMOES FILHO", "UBA": "UBAITABA", "VAL": "VALENCA", "VC": "VITORIA DA CONQUISTA",
-            "SAJ": "SANTO ANTONIO DE JESUS", "JUA": "JUAZEIRO", "PA": "PAULO AFONSO",
-            "PIS": "POLO DE INOVACAO SALVADOR", "PS": "PORTO SEGURO", "SSA": "SALVADOR"
-        };
-        const unidade = (this.grupo.Unidade || "").toUpperCase();
-        for (const [code, city] of Object.entries(CAMPUS_TO_CITY)) {
-            if (unidade.includes(city)) return code;
+        // Mesma tabela de ../dashboard-prpgi/src/shared.js (fonte única lá).
+        // A comparação normaliza os dois lados (maiúsculas, sem acento): antes
+        // só a Unidade era maiúscula e as cidades acentuadas não casavam.
+        // Diferente do dashboard, Unidade não identificada devolve null (sem
+        // filtro de campus) em vez de cair em Salvador.
+        const unidade = normalizarTextoCampus(this.grupo.Unidade);
+        for (const [code, city] of CAMPUS_ENTRIES_ORDENADAS) {
+            if (unidade.includes(normalizarTextoCampus(city))) return code;
         }
         return null;
     }

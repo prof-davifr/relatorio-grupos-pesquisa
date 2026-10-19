@@ -275,6 +275,38 @@ describe('ValidadorGrupo._getPeriodBounds', () => {
     });
 });
 
+// ─── ValidadorGrupo — campus mapping ─────────────────────────────────────────
+
+describe('ValidadorGrupo._mapCampus', () => {
+    const campusDe = (Unidade) => new ValidadorGrupo(
+        makeGrupo({ Unidade }), makeGroupsData(), makeDashboard(), 'all', null
+    ).mappedCampus;
+
+    test.each([
+        ['IFBA - Campus Vitória da Conquista', 'VC'],
+        ['IFBA - Campus Eunápolis', 'EUN'],
+        ['IFBA - Campus Ilhéus', 'ILH'],
+        ['IFBA - Campus Valença', 'VAL'],
+        ['IFBA - Campus Camaçari', 'CAM'],
+        ['IFBA - Campus Jequié', 'JEQ'],
+        ['IFBA - Campus Simões Filho', 'SF'],
+        ['IFBA - Campus Irecê', 'IRE'],
+        ['IFBA - Campus Santo Antônio de Jesus', 'SAJ'],
+        ['IFBA - Campus Santo Amaro', 'SAM'],
+        ['IFBA - Campus Itabuna', 'ITA'],
+        ['IFBA - Campus Salvador', 'SSA'],
+        ['Polo de Inovação Salvador', 'PIS'],
+        ['IFBA - Campus Vitoria da Conquista', 'VC'],
+    ])('resolve "%s" para %s, com ou sem acento', (unidade, esperado) => {
+        expect(campusDe(unidade)).toBe(esperado);
+    });
+
+    test('Unidade não identificada devolve null (sem filtro de campus)', () => {
+        expect(campusDe('Outra Instituição')).toBeNull();
+        expect(campusDe('')).toBeNull();
+    });
+});
+
 // ─── ValidadorGrupo — period filtering ───────────────────────────────────────
 
 describe('ValidadorGrupo._filterByPeriod', () => {
