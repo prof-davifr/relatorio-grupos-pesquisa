@@ -14,6 +14,10 @@ uma regeneração de dados **não commitada** na árvore de trabalho. O site seg
 no ar (`https://prof-davifr.github.io/relatorio-grupos-pesquisa/`, HTTP 200,
 `last-modified` 06/08/2026), servindo os dados da última publicação.
 
+Revisão de 18/10/2026: a regeneração pendente foi commitada em 27/09 (`3c7b1a7`)
+e a árvore está limpa; o mapa de campus foi corrigido (`b39c571`). O relatório
+segue com **197 grupos**, contra **210** na geração de 05/10 do dashboard.
+
 ---
 
 ## 🟢 Concluído (ago/2026)
@@ -76,8 +80,11 @@ no ar (`https://prof-davifr.github.io/relatorio-grupos-pesquisa/`, HTTP 200,
 
 ## 📋 Backlog
 
-- [ ] **Decidir o que fazer com a regeneração pendente de `data.json` e
+- [x] **Decidir o que fazer com a regeneração pendente de `data.json` e
       `data-groups.json` — está na árvore de trabalho desde 14/08 e já nasceu velha.**
+      **Feito em 27/09/2026** — o dono comitou a regeneração como está
+      (`3c7b1a7`, "dados: atualização de 14/08/2026"); conferido em 18/10. O que
+      sobra é sincronizar com o dashboard atual (item abaixo). Texto original:
       Os dois arquivos são JSON de uma linha só, então o `git diff --stat` mostra
       `2 files changed, 2 insertions, 2 deletions` e não ajuda; o que muda é o
       conteúdo: `data.json` 20,29 MB → 19,11 MB (−1,18 MB) e `data-groups.json`
@@ -90,12 +97,27 @@ no ar (`https://prof-davifr.github.io/relatorio-grupos-pesquisa/`, HTTP 200,
       descartá-la (`git checkout -- data.json data-groups.json`) e rodar
       `scripts/atualizar-dados.sh` contra o dashboard atual. Decisão humana: preferir
       o dado novo ou preservar a queda de 11,8 % em técnica para auditoria antes.
+- [ ] **Sincronizar com a geração de 05/10/2026 do dashboard.** Conferido em 18/10:
+      o `data-groups.json` local do dashboard (05/10) tem 210 grupos, 50.700
+      bibliográficas, 70.856 técnicas e 26.131 orientações concluídas; aqui ainda são
+      197 grupos da coleta de 14/08. O caminho é `scripts/atualizar-dados.sh` (sem
+      `--build`), revisar o resumo, rodar `npx jest` e `node tests/smoke-real-data.js`,
+      commitar `data.json` e `data-groups.json` e publicar. Fica para o dono porque
+      publica dado novo no Pages e porque convém decidir antes o item de LGPD — cada
+      sincronização republica e grava de novo no histórico os nomes listados lá.
 - [ ] **Compatibilidade de formato: `producoes.bancas/bolsas/projetos/captacao/premios`
       continuam ausentes.** Confirmado em 31/08 também na geração mais recente do
       dashboard — o `data-groups.json` traz apenas `bibliografica`, `tecnica`,
       `inovacao`, `concluidas` e `andamento`. O validador tolera (`|| []`), mas os
       indicadores dessas categorias aparecem zerados e um toast avisa. Decidir:
       pedir essas abas no build do dashboard ou remover os indicadores do relatório.
+      *Análise de 18/10/2026:* a geração de 05/10 do dashboard continua com as mesmas
+      cinco chaves. As planilhas brutas do SUAP (`dados/scraper-SUAPCNPQ/*.xlsx`) trazem
+      duas abas que o build ignora — **"Banca de Trabalho de Conclusão"** e **"Banca de
+      Comissão Julgadora"** —, mas nenhuma de bolsas, projetos, captação ou prêmios.
+      Recomendação: pedir ao build só as bancas (o dado existe, basta uma entrada no
+      `SHEET_MAP_DETALHADO`) e marcar bolsas, projetos, captação e prêmios como
+      "Não verificado" em vez de zero, como já se faz com o relatório bienal.
 - [ ] **Inovação: o dashboard mudou de fonte e o relatório não — alinhar o critério.**
       Desde 24/08 a aba Inovação do dashboard vem do INPI (265 registros sob o CNPJ da
       instituição), enquanto a pontuação dos grupos aqui continua sobre a autodeclaração
@@ -104,6 +126,11 @@ no ar (`https://prof-davifr.github.io/relatorio-grupos-pesquisa/`, HTTP 200,
       se for o INPI, o `data-groups.json` precisa carregar o campo e a
       `chaveMelhorada` de `limpar-dados.js` muda (o registro do INPI não tem
       `Publicacao`, a chave é o próprio número).
+      *Conferido em 18/10/2026:* na geração de 05/10 o `data.json` do dashboard tem 268
+      registros de inovação (INPI) e o `data-groups.json` mantém 988 (Lattes); aqui,
+      depois do dedup, são 642. Recomendação: perguntar à PRPGI e, até lá, pôr no
+      relatório uma nota curta dizendo que a pontuação de inovação usa a autodeclaração
+      do Lattes, para o número público não parecer erro.
 - [ ] **LGPD: este repositório publica mais dado pessoal do que o dashboard.** O
       `data-groups.json` servido no Pages (baixável direto, HTTP 206 em teste de faixa)
       traz nome do líder, `LiderId` (SIAPE), e-mail de contato, `PesquisadoresNomes`,
@@ -112,6 +139,15 @@ no ar (`https://prof-davifr.github.io/relatorio-grupos-pesquisa/`, HTTP 200,
       arquivo público. Falta decidir o modelo: acesso restrito (login `@ifba.edu.br`),
       pseudonimização com o nome resolvido só na sessão, ou parecer formal de que o
       dado do DGP já é público e pode ficar como está.
+      *Análise de 18/10/2026:* o dashboard nem versiona o seu `data-groups.json` (está
+      no `.gitignore` de lá). Aqui, dos campos pessoais do grupo, a aplicação **não lê**
+      `Lider` (nome), `Contato` (e-mail, preenchido nos 197 grupos) nem `ViceLider`
+      (vazio) — o líder aparece marcado na lista de membros pelo `LiderId`. `LiderId`,
+      `PesquisadoresNomes`, `membrosMap` e `servidores` são usados (modal do
+      pesquisador, ranking, lista de membros). Recomendação: independente do modelo,
+      remover `Lider`, `Contato` e `ViceLider` no `limpar-dados.js`, que não muda nada
+      na tela; para o resto, a pseudonimização no estilo do dashboard é a que preserva
+      o site público. Lembrar que os arquivos antigos continuam no histórico do git.
 - [ ] **Peso do repositório: 87 MB de `.git` medidos em 31/08, e boa parte é
       desnecessária.** Cada sincronização versiona ~72 MB de JSON e o histórico só
       cresce (sem pack: `git count-objects` acusa tudo solto). O `data.json` de 19 MB é
@@ -119,7 +155,20 @@ no ar (`https://prof-davifr.github.io/relatorio-grupos-pesquisa/`, HTTP 200,
       `script.js`, cinco a `dados.meta` em `dashboard.js`); trocá-lo por um `meta.json`
       de poucos bytes corta ~20 MB por sincronização sem mudar nada na tela. Depois
       disso, reavaliar Git LFS ou geração no CI para o `data-groups.json`.
-- [ ] **Mapa de campus local desatualizado e sem normalização de acento.** O
+      *Medido em 18/10/2026:* `.git` com 103 MB (`git count-objects -vH`: 149 objetos
+      soltos, 102,21 MiB, nenhum pack); 29 commits, 3 versões do `data.json` e 6 do
+      `data-groups.json`. Confirmado que `script.js`, `dashboard.js` e `criterios.js`
+      leem do `data.json` só `meta`. Recomendação: (1) `meta.json` gerado no
+      `sync-data.sh` e lido pelos três arquivos, tirando o `data.json` do repositório;
+      (2) `git gc` local para empacotar — JSON quase igual entre versões deve comprimir
+      bem; (3) só reescrever o histórico se o dono quiser, já que exige push forçado.
+- [x] **Mapa de campus local desatualizado e sem normalização de acento.**
+      **Feito em 18/10/2026** (`b39c571`) — `criterios.js` usa a mesma tabela do
+      `src/shared.js` do dashboard (inclui ITA), normaliza os dois lados e testa da
+      cidade mais longa para a mais curta (o Polo de Inovação deixou de cair em
+      Salvador). Os 197 grupos resolvem campus; pontuação e critérios iguais nos
+      períodos todo, 4 anos e 2 anos; 15 testes novos. Continua uma cópia — consumir o
+      `shared.js` direto exigiria publicar o arquivo junto. Texto original: O
       `CAMPUS_TO_CITY` de `criterios.js` é cópia própria, tem 25 campi (falta ITA /
       Itabuna, incorporado ao dashboard em 21/08) e compara `unidade.includes(city)`
       com as cidades sem acento contra uma `Unidade` acentuada: **60 dos 197 grupos**
@@ -132,3 +181,4 @@ no ar (`https://prof-davifr.github.io/relatorio-grupos-pesquisa/`, HTTP 200,
       manter cópia.
 - [ ] **Teste visual humano dos gráficos** — conferir cores, formatos, títulos de eixo
       e legendas com quem usa o relatório. Nenhum teste automatizado cobre render.
+      Depende de gente; não dá para fazer sem quem usa o relatório (18/10/2026).
